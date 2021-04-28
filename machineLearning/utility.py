@@ -12,7 +12,7 @@ from sklearn.metrics import confusion_matrix
 from sklearn import model_selection
 from sklearn.metrics import precision_recall_fscore_support as s
 from sklearn.impute import SimpleImputer
-from sklearn.preprocessing.data import StandardScaler
+from sklearn.preprocessing import StandardScaler
 from sklearn.pipeline import Pipeline
 from imblearn.over_sampling import SMOTE
 
