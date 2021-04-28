@@ -15,12 +15,12 @@ class Data:
     """Classe définissant un jeu de données et qui permet de le traiter"""
 
     def __init__(self, name, target, dropColsList, dropClassList):
-        self.path = os.path.join(os.path.dirname(os.getcwd()) + '/in', name)
+        self.path = os.path.join(os.getcwd() + '/in', name)
         self.target = target
         self.dropColsList = dropColsList
         self.dropClassList = dropClassList
         self.dummiesList = None
-        self.path2 = os.path.dirname(os.getcwd()) + '/out'
+        self.path2 = os.getcwd() + '/out'
 
     def createDummiesLst(self, data):
         col = [c for c in data.select_dtypes(exclude=['bool']).columns if c != self.target]

@@ -1,6 +1,6 @@
-import machineLearning.data as data
-import machineLearning.tab as tab
-import machineLearning.utility as utility
+import machineLearning.preprocessing.data as data
+import machineLearning.tab.tab as tab
+import machineLearning.utility.utility as utility
 
 import threading
 import queue
@@ -16,7 +16,7 @@ import warnings
 warnings.filterwarnings('ignore')
 
 
-class Iterated:
+class VNS:
 
     def __init__(self, data, dataObject, listModels, target, copy, data_name):
         self.data = data
@@ -24,7 +24,7 @@ class Iterated:
         self.listModels = listModels
         self.target = target
         self.copy = copy
-        self.path2 = os.path.dirname(os.getcwd()) + '/out'
+        self.path2 = os.getcwd() + '/out'
         self.tab_data = []
         self.tab_vals = []
         self.tab_insert = 0
@@ -67,66 +67,6 @@ class Iterated:
                 lst.append(ind)
             neighbors_space.append(lst)
         return neighbors_space
-
-    def k_opt(self, best_res, best_solution, best_accuracy, best_precision, best_recall, best_fscore, best_cols,
-              best_model, data, mods, dummiesList, createDummies, normalize, metric):
-        # print("K-opt :")
-        # amelioration = True
-        # while amelioration:
-        #     perturbation = best_solution.copy()
-        #     amelioration = False
-        #     for i in range(len(perturbation)):
-        #         for j in range(len(perturbation)):
-        #             if j != (i-1) and j != (i+1):
-        #                 pertubation_prime = perturbation.copy()
-        #                 pertubation_prime[i] = not pertubation_prime[i]
-        #                 pertubation_prime[j] = not pertubation_prime[j]
-        #                 res_ij, accuracy_ij, precision_ij, recall_ij, fscore_ij, cols_ij, model_ij =\
-        #                     self.fitness(mods, pertubation_prime, data, dummiesList, createDummies, normalize, metric)
-        #                 if res_ij > best_res:
-        #                     best_solution = pertubation_prime
-        #                     best_res = res_ij
-        #                     best_accuracy = accuracy_ij
-        #                     best_precision = precision_ij
-        #                     best_recall = recall_ij
-        #                     best_fscore = fscore_ij
-        #                     best_cols = cols_ij
-        #                     best_model = model_ij
-        #                     amelioration = True
-        # print("value: ", best_res, "amelioration?: ", amelioration)
-        mutate_index = random.sample(range(0, len(best_solution)), 1)
-        perturbation = best_solution.copy()
-        for m in mutate_index:
-            perturbation[m] = not perturbation[m]
-
-        accuracy_ij, precision_ij, recall_ij, fscore_ij, cols_ij, model_ij, obj =\
-            utility.fitness2(self=self, mode=mods, solution=perturbation, data=data, dummiesList=dummiesList,
-                             createDummies=createDummies, normalize=normalize)
-
-        self.tab_data, self.tab_vals, self.tab_insert, self.tab_find = \
-            obj.tab_data, obj.tab_vals, obj.tab_insert, obj.tab_find
-
-        if metric == 'accuracy' or 'exactitude':
-            res_ij = accuracy_ij
-        elif metric == 'recall' or 'rappel':
-            res_ij = recall_ij
-        elif metric == 'precision' or 'précision':
-            res_ij = precision_ij
-        elif metric == 'fscore':
-            res_ij = fscore_ij
-        else:
-            res_ij = accuracy_ij
-        if res_ij > best_res:
-            best_solution = perturbation
-            best_res = res_ij
-            best_accuracy = accuracy_ij
-            best_precision = precision_ij
-            best_recall = recall_ij
-            best_fscore = fscore_ij
-            best_cols = cols_ij
-            best_model = model_ij
-
-        return best_res, best_solution, best_accuracy, best_precision, best_recall, best_fscore, best_cols, best_model
 
     def vnd(self, n_gen, kmax, n_neighbors, solution, best_res, best_solution,  best_accuracy, best_precision,
             best_recall, best_fscore, best_cols, best_model, data, mode, dummiesList, createDummies, normalize, metric):
@@ -197,7 +137,8 @@ class Iterated:
             solution = initial_solution
 
             accuracy, recall, precision, fscore, cols, model, obj = \
-                utility.fitness2(self, mode, solution, data, dummiesList, createDummies, normalize)
+                utility.fitness2(self=self, mode=mode, solution=solution, data=data, dummiesList=dummiesList,
+                                 createDummies=createDummies, normalize=normalize)
 
             self.tab_data, self.tab_vals, self.tab_insert, self.tab_find =\
                 obj.tab_data, obj.tab_vals, obj.tab_insert, obj.tab_find
@@ -224,36 +165,39 @@ class Iterated:
 
             while iteration < n_gen:
                 instant = time.time()
-                res_prime, res_sol_prime, accuracy_prime, precision_prime, recall_prime, fscore_prime, cols_prime,\
-                model_prime = self.k_opt(
-                    best_res, best_solution, best_accuracy, best_precision, best_recall, best_fscore, best_cols,
-                    best_model, data, mode, dummiesList, createDummies, normalize, metric
-                )
+                k = 0
+                neighbor_space = self.generate_neighbors(solution, n_neighbors)
+                while k < kmax:
+                    for solution_prime in neighbor_space[k]:
+                        res_nei, res_sol, accuracy_n, precision_n, recall_n, fscore_n, cols_n, model_n = self.vnd(
+                            n_gen_vnd, kmax, n_neighbors, solution_prime, best_res, best_solution, best_accuracy,
+                            best_precision,
+                            best_recall, best_fscore, best_cols, best_model, data, mode, dummiesList, createDummies,
+                            normalize,
+                            metric)
 
-                if res_prime > best_res:
-                    best_solution = res_sol_prime
-                    best_res = res_prime
-                    best_accuracy = accuracy_prime
-                    best_precision = precision_prime
-                    best_recall = recall_prime
-                    best_fscore = fscore_prime
-                    best_cols = cols_prime
-                    best_model = model_prime
+                        if metric == 'accuracy' or 'exactitude':
+                            res_nei = accuracy_n
+                        elif metric == 'recall' or 'rappel':
+                            res_nei = recall_n
+                        elif metric == 'precision' or 'précision':
+                            res_nei = precision_n
+                        elif metric == 'fscore':
+                            res_nei = fscore_n
+                        else:
+                            res_nei = accuracy_n
 
-                res_nei, res_sol, accuracy_n, precision_n, recall_n, fscore_n, cols_n, model_n = self.vnd(
-                    n_gen_vnd, kmax, n_neighbors, res_sol_prime, best_res, best_solution, best_accuracy, best_precision,
-                    best_recall, best_fscore, best_cols, best_model, data, mode, dummiesList, createDummies, normalize,
-                    metric)
+                        if res_nei > best_res:
+                            best_solution = res_sol
+                            best_res = res_nei
+                            best_accuracy = accuracy_n
+                            best_precision = precision_n
+                            best_recall = recall_n
+                            best_fscore = fscore_n
+                            best_cols = cols_n
+                            best_model = model_n
 
-                if res_nei > best_res:
-                    best_solution = res_sol
-                    best_res = res_nei
-                    best_accuracy = accuracy_n
-                    best_precision = precision_n
-                    best_recall = recall_n
-                    best_fscore = fscore_n
-                    best_cols = cols_n
-                    best_model = model_n
+                    k = k + 1
 
                 print("mode: ", mode, " valeur: ", best_res, " iteration: ", iteration,
                       " temps exe: ", str(timedelta(seconds=(time.time() - instant))),
@@ -275,7 +219,7 @@ class Iterated:
                 fig, ax = plt.subplots()
                 ax.plot(x1, y1)
                 ax.set_title("Evolution du score par génération (" + folderName + ")"
-                             + "\nRecherche locale itérée")
+                             + "\nRecherche à voisinage variable")
                 ax.set_xlabel("génération")
                 ax.set_ylabel(metric)
                 ax.grid()
@@ -292,7 +236,7 @@ class Iterated:
                 ax2.plot(x1, yX)
 
                 ax2.set_title("Evolution du score par génération pour chacune des classes (" + folderName + ")"
-                              + "\nRecherrche locale itérée")
+                              + "\nRecherche locale itérée")
                 ax2.set_xlabel("génération")
                 ax2.set_ylabel(metric)
                 ax2.grid()
@@ -324,11 +268,13 @@ class Iterated:
             names.put(folderName + ": " + "{:.3f}".format(best_res))
             iters.put(iteration)
 
+            tab.dump(self.tab_data, self.tab_vals, 'tab_' + self.data_name + '_' + mode)
+
     def init(self, n_gen, n_gen_vnd, kmax, n_neighbors, data, dummiesList, createDummies, normalize, metric):
 
-        print("#########################")
-        print("#RECHERCHE LOCALE ITEREE#")
-        print("#########################")
+        print("#################################")
+        print("#RECHERCHE A VOISINNAGE VARIABLE#")
+        print("#################################")
         print()
 
         x = queue.Queue()
@@ -359,9 +305,9 @@ class Iterated:
         for thread in threads:
             thread.join()
 
-        return utility.res(heuristic="Recherche locale itérée", x=list(x.queue), y=list(y.queue),
+        return utility.res(heuristic="Recherche à voisinage variable", x=list(x.queue), y=list(y.queue),
                            z=list(z.queue), besties=list(besties.queue), names=list(names.queue),
-                           iters=list(iters.queue), metric=metric, path=self.path2, n_gen=n_gen - 1, self=self)
+                           iters=list(iters.queue), metric=metric, path=self.path2, n_gen=n_gen-1, self=self)
 
 
 if __name__ == '__main__':
@@ -375,11 +321,11 @@ if __name__ == '__main__':
     d2, target, copy, copy2, copy3, copy4, dummiesLst, ratio, chi2, anova2, originLst =\
         d.ready(deleteCols=True, dropna=True, thresholdDrop=70, createDummies=True, normalize=False)
 
-    iterated = Iterated(d2, d, ['lr'], target, originLst, name)
+    vns = VNS(d2, d, ['lr'], target, originLst, name)
     gen = 5
     gen_vnd = 2
     nei = 2
     kmax = 2
-    g1, g2, g3, g4, g5 = iterated.init(n_gen=gen, n_gen_vnd=gen_vnd, kmax=kmax, n_neighbors=nei, data=copy2,
-                                       dummiesList=d.dummiesList, createDummies=createDummies, normalize=normalize,
-                                       metric="accuracy")
+    g1, g2, g3, g4, g5 = vns.init(n_gen=gen, n_gen_vnd=gen_vnd, kmax=kmax, n_neighbors=nei, data=copy2,
+                                  dummiesList=d.dummiesList, createDummies=createDummies, normalize=normalize,
+                                  metric="accuracy")

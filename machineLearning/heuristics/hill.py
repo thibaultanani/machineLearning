@@ -1,6 +1,6 @@
-import machineLearning.data as data
-import machineLearning.tab as tab
-import machineLearning.utility as utility
+import machineLearning.preprocessing.data as data
+import machineLearning.tab.tab as tab
+import machineLearning.utility.utility as utility
 
 import threading
 import queue
@@ -21,7 +21,7 @@ class Hill:
         self.listModels = listModels
         self.target = target
         self.copy = copy
-        self.path2 = os.path.dirname(os.getcwd()) + '/out'
+        self.path2 = os.getcwd() + '/out'
         self.tab_data = []
         self.tab_vals = []
         self.tab_insert = 0

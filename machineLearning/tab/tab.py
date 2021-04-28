@@ -141,7 +141,7 @@ def pretty_val(value):
 
 
 def dump(tab_data, tab_val, filename):
-    a = os.path.join(os.path.dirname(os.getcwd()) + '/tab', filename + '.txt')
+    a = os.path.join(os.getcwd() + '/tab', filename + '.txt')
     f1 = open(a, "wb")
     for i in range(len(tab_data)):
         # data = bytetostring(tab_data[i])
@@ -163,7 +163,7 @@ def dump(tab_data, tab_val, filename):
 
 
 def dump_test(iter_size, size):
-    a = os.path.join(os.path.dirname(os.getcwd()) + '/tab', 'dump_test.txt')
+    a = os.path.join(os.getcwd() + '/tab', 'dump_test.txt')
     f1 = open(a, "wb")
     tab = []
     vals = []
@@ -186,7 +186,7 @@ def dump_test(iter_size, size):
 
 
 def read(size, matrix_size, filename):
-    a = os.path.join(os.path.dirname(os.getcwd()) + '/tab', filename + '.txt')
+    a = os.path.join(os.getcwd() + '/tab', filename + '.txt')
     f1 = open(a, "rb")
     datas = []
     vals = []
@@ -207,7 +207,7 @@ def read(size, matrix_size, filename):
 
 
 def read_test(size, matrix_size):
-    a = os.path.join(os.path.dirname(os.getcwd()) + '/tab', 'dump_test.txt')
+    a = os.path.join(os.getcwd() + '/tab', 'dump_test.txt')
     f1 = open(a, "rb")
     datas = []
     vals = []

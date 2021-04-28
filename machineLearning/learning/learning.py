@@ -1,4 +1,4 @@
-import machineLearning.data as data
+import machineLearning.preprocessing.data as data
 
 import numpy as np
 from sklearn import model_selection

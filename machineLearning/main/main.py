@@ -1,6 +1,7 @@
-import machineLearning.config as cfg
+import machineLearning.preprocessing.config as cfg
 
-from machineLearning import data, genetic, differential, swarm, hill, tabu, simulated, vns, iterated
+from machineLearning.preprocessing import data
+from machineLearning.heuristics import hill, genetic, iterated, differential, simulated, swarm, tabu, vns
 
 if __name__ == '__main__':
     d = data.Data(name=cfg.general['dataset'], target=cfg.general['target'], dropColsList=cfg.general['dropcol'],

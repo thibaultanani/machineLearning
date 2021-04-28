@@ -1,7 +1,8 @@
-import machineLearning.data as data
-import machineLearning.tab as tab
-import machineLearning.utility as utility
+import machineLearning.preprocessing.data as data
+import machineLearning.tab.tab as tab
+import machineLearning.utility.utility as utility
 
+import math
 import threading
 import queue
 import numpy as np
@@ -16,7 +17,7 @@ import warnings
 warnings.filterwarnings('ignore')
 
 
-class Tabu:
+class Simulated:
 
     def __init__(self, data, dataObject, listModels, target, copy, data_name):
         self.data = data
@@ -24,22 +25,21 @@ class Tabu:
         self.listModels = listModels
         self.target = target
         self.copy = copy
-        self.path2 = os.path.dirname(os.getcwd()) + '/out'
+        self.path2 = os.getcwd() + '/out'
         self.tab_data = []
         self.tab_vals = []
         self.tab_insert = 0
         self.tab_find = 0
         self.data_name = data_name
 
-    def write_res(self, folderName, mode, n_tabu, n_gen, n_neighbors, n_mute_max, y1, y2, yX, colMax, bestScore,
+    def write_res(self, folderName, mode, temperature, alpha, final_temperature, y1, y2, yX, colMax, bestScore,
                   bestScoreA, bestScoreP, bestScoreR, bestScoreF, bestModel, debut):
         a = os.path.join(os.path.join(self.path2, folderName), 'resultat.txt')
         f = open(a, "w")
         f.write("mode: " + mode + os.linesep)
-        f.write("tabou: " + str(n_tabu) + os.linesep)
-        f.write("générations: " + str(n_gen) + os.linesep)
-        f.write("voisins: " + str(n_neighbors) + os.linesep)
-        f.write("mutations: " + str(n_mute_max) + os.linesep)
+        f.write("température initiale: " + str(temperature) + os.linesep)
+        f.write("alpha: " + str(alpha) + os.linesep)
+        f.write("température finale: " + str(final_temperature) + os.linesep)
         f.write("meilleur: " + str(y1) + os.linesep)
         f.write("classes: " + str(yX) + os.linesep)
         f.write("colonnes:" + str(colMax.tolist()) + os.linesep)
@@ -55,22 +55,18 @@ class Tabu:
         f.write("Valeur présente dans le tableau: " + str(self.tab_find) + os.linesep)
         f.close()
 
-    def generate_neighbors(self, solution, n_neighbors, n_mute_max):
-        neighbors = [list(solution.copy()) for _ in range(n_neighbors)]
-        for ind in neighbors:
-            mutate_index = random.sample(range(0, len(solution)), random.randint(1, n_mute_max))
-            for x in mutate_index:
-                ind[x] = not ind[x]
-        return list(neighbors)
-
-    def optimization(self, part, n_tabu, n_gen, n_neighbors, n_mute_max, data,
+    def optimization(self, part, temperature, alpha, final_temperature, data,
                      dummiesList, createDummies, normalize, metric, x, y, besties, names, iters):
+
+        debut = time.time()
 
         for mode in part:
 
             folderName = mode.upper()
 
             utility.createDirectory(path=self.path2, folderName=folderName)
+
+            iteration = 0
 
             cols = self.data.drop([self.target], axis=1).columns
 
@@ -88,88 +84,82 @@ class Tabu:
             x2 = []
             yX = []
 
-            initial_solution = np.random.choice(a=[False, True], size=self.copy.columns.size - 1)
-            solution = initial_solution
-            tabu_list = []
+            solution = np.random.choice(a=[False, True], size=self.copy.columns.size - 1)
 
-            accuracy, recall, precision, fscore, cols, model, obj = \
-                utility.fitness2(self=self, mode=mode, solution=solution, data=data, dummiesList=dummiesList,
-                                 createDummies=createDummies, normalize=normalize)
+            best_solution = None
+            best_res = 0
+            best_accuracy = None
+            best_precision = None
+            best_recall = None
+            best_fscore = None
+            best_cols = None
+            best_model = None
 
-            self.tab_data, self.tab_vals, self.tab_insert, self.tab_find =\
-                obj.tab_data, obj.tab_vals, obj.tab_insert, obj.tab_find
+            begin_temperature = temperature
 
-            if metric == 'accuracy' or 'exactitude':
-                res_sol = accuracy
-            elif metric == 'recall' or 'rappel':
-                res_sol = recall
-            elif metric == 'precision' or 'précision':
-                res_sol = precision
-            elif metric == 'fscore':
-                res_sol = fscore
-            else:
-                res_sol = accuracy
-
-            best_solution = solution
-            best_res = res_sol
-            best_accuracy = accuracy
-            best_precision = precision
-            best_recall = recall
-            best_fscore = fscore
-            best_cols = cols
-            best_model = model
-
-            # Mesurer le temps d'execution
-            debut = time.time()
-
-            tabu_list.append(list(best_solution))
-
-            iteration = 0
-            while iteration < n_gen:
+            while temperature > final_temperature:
                 instant = time.time()
 
-                neighbors_solutions = self.generate_neighbors(solution, n_neighbors, n_mute_max)
-                for neighbor in neighbors_solutions:
-                    if neighbor not in tabu_list:
-                        accuracy_n, recall_n, precision_n, fscore_n, cols_n, model_n, obj = \
-                            utility.fitness2(self=self, mode=mode, solution=neighbor, data=data,
-                                             dummiesList=dummiesList, createDummies=createDummies, normalize=normalize)
+                mutate_index = random.sample(range(0, len(solution)), 1)
+                neighbor = solution.copy()
+                for m in mutate_index:
+                    neighbor[m] = not neighbor[m]
 
-                        self.tab_data, self.tab_vals, self.tab_insert, self.tab_find = \
-                            obj.tab_data, obj.tab_vals, obj.tab_insert, obj.tab_find
+                accuracy, recall, precision, fscore, cols, model, obj = \
+                    utility.fitness2(self, mode, solution, data, dummiesList, createDummies, normalize)
 
-                        if metric == 'accuracy' or 'exactitude':
-                            res_nei = accuracy_n
-                        elif metric == 'recall' or 'rappel':
-                            res_nei = recall_n
-                        elif metric == 'precision' or 'précision':
-                            res_nei = precision_n
-                        elif metric == 'fscore':
-                            res_nei = fscore_n
-                        else:
-                            res_nei = accuracy_n
-                        if res_nei > best_res:
-                            best_solution = neighbor
-                            best_res = res_nei
-                            best_accuracy = accuracy_n
-                            best_recall = recall_n
-                            best_precision = precision_n
-                            best_fscore = fscore_n
-                            best_cols = cols_n
-                            best_model = model_n
+                self.tab_data, self.tab_vals, self.tab_insert, self.tab_find = \
+                    obj.tab_data, obj.tab_vals, obj.tab_insert, obj.tab_find
 
-                        if len(tabu_list) != n_tabu:
-                            tabu_list.append(neighbor)
-                        else:
-                            tabu_list.pop(0)
-                            tabu_list.append(neighbor)
+                accuracy_n, recall_n, precision_n, fscore_n, cols_n, model_n, obj = \
+                    utility.fitness2(self, mode, neighbor, data, dummiesList, createDummies, normalize)
+
+                self.tab_data, self.tab_vals, self.tab_insert, self.tab_find = \
+                    obj.tab_data, obj.tab_vals, obj.tab_insert, obj.tab_find
+
+                if metric == 'accuracy' or 'exactitude':
+                    res_sol = accuracy
+                    res_nei = accuracy_n
+                elif metric == 'recall' or 'rappel':
+                    res_sol = recall
+                    res_nei = recall_n
+                elif metric == 'precision' or 'précision':
+                    res_sol = precision
+                    res_nei = precision_n
+                elif metric == 'fscore':
+                    res_sol = fscore
+                    res_nei = fscore_n
+                else:
+                    res_sol = accuracy
+                    res_nei = accuracy_n
+
+                if res_sol > best_res:
+                    best_solution = solution
+                    best_res = res_sol
+                    best_accuracy = accuracy
+                    best_precision = precision
+                    best_recall = recall
+                    best_fscore = fscore
+                    best_cols = cols
+                    best_model = model
+
+                cost = res_nei - res_sol
+                if cost >= 0:
+                    solution = neighbor
+                    res_sol = res_nei
+                else:
+                    r = random.uniform(0, 1)
+                    if r < math.exp(- cost / temperature):
+                        solution = neighbor
+                        res_sol = res_nei
 
                 print("mode: ", mode, " valeur: ", best_res, " iteration: ", iteration,
-                      " temps exe: ",  str(timedelta(seconds=(time.time() - instant))),
+                      " temps exe: ", str(timedelta(seconds=(time.time() - instant))),
                       " temps total: ", str(timedelta(seconds=(time.time() - debut))))
 
                 x1.append(iteration)
                 y1.append(best_res)
+                y2.append(res_sol)
 
                 tmp = []
                 tmp2 = []
@@ -183,16 +173,17 @@ class Tabu:
 
                 fig, ax = plt.subplots()
                 ax.plot(x1, y1)
+                ax.plot(x1, y2)
                 ax.set_title("Evolution du score par génération (" + folderName + ")"
-                             + "\nRecherche tabou")
+                             + "\nRecuit simulé")
                 ax.set_xlabel("génération")
                 ax.set_ylabel(metric)
                 ax.grid()
-                ax.legend(labels=["Le meilleur"],
+                ax.legend(labels=["Le meilleur", "Valeur actuelle"],
                           loc='center left', bbox_to_anchor=(1.04, 0.5), borderaxespad=0)
-                a = os.path.join(os.path.join(self.path2, folderName), 'plot_' + str(n_gen) + '.png')
+                a = os.path.join(os.path.join(self.path2, folderName), 'plot_' + str(begin_temperature) + '.png')
                 b = os.path.join(os.getcwd(), a)
-                #if iteration == n_gen - 1:
+                # if iteration == begin_temperature - 1:
                 fig.savefig(os.path.abspath(b), bbox_inches="tight")
                 plt.close(fig)
 
@@ -201,23 +192,24 @@ class Tabu:
                 ax2.plot(x1, yX)
 
                 ax2.set_title("Evolution du score par génération pour chacune des classes (" + folderName + ")"
-                              + "\nRecherche tabou")
+                              + "\nRecuit simulé")
                 ax2.set_xlabel("génération")
                 ax2.set_ylabel(metric)
                 ax2.grid()
                 ax2.legend(labels=unique, loc='center left', bbox_to_anchor=(1.04, 0.5), borderaxespad=0)
-                a = os.path.join(os.path.join(self.path2, folderName), 'plotb_' + str(n_gen) + '.png')
+                a = os.path.join(os.path.join(self.path2, folderName), 'plotb_' + str(begin_temperature) + '.png')
                 b = os.path.join(os.getcwd(), a)
-                #if iteration == n_gen - 1:
+                # if iteration == begin_temperature - 1:
                 fig2.savefig(os.path.abspath(b), bbox_inches="tight")
                 plt.close(fig2)
 
+                temperature = temperature - alpha
                 iteration = iteration + 1
 
-            self.write_res(folderName=folderName, mode=mode, n_tabu=n_tabu, n_gen=n_gen, n_neighbors=n_neighbors,
-                           n_mute_max=n_mute_max, y1=y1, y2=y2, yX=yX, colMax=best_cols, bestScore=best_res,
-                           bestScoreA=best_accuracy, bestScoreP=best_precision, bestScoreR=best_recall,
-                           bestScoreF=best_fscore, bestModel=best_model, debut=debut)
+            self.write_res(folderName=folderName, mode=mode, temperature=begin_temperature, alpha=alpha,
+                           final_temperature=final_temperature, y1=y1, y2=y2, yX=yX, colMax=best_cols,
+                           bestScore=best_res, bestScoreA=best_accuracy, bestScoreP=best_precision,
+                           bestScoreR=best_recall, bestScoreF=best_fscore, bestModel=best_model, debut=debut)
 
             if (iteration % 5) == 0:
                 print("Sauvegarde du tableau actuel dans les fichiers, itération:", iteration)
@@ -229,17 +221,17 @@ class Tabu:
 
             x.put(list(arg1))
             y.put(list(arg2))
-            besties.put(y1)
+            besties.put(y2)
             names.put(folderName + ": " + "{:.3f}".format(best_res))
             iters.put(iteration)
 
             tab.dump(self.tab_data, self.tab_vals, 'tab_' + self.data_name + '_' + mode)
 
-    def init(self, n_tabu, n_gen, n_neighbors, n_mute_max, data, dummiesList, createDummies, normalize, metric):
+    def init(self, temperature, alpha, final_temperature, data, dummiesList, createDummies, normalize, metric):
 
-        print("#################")
-        print("#RECHERCHE TABOU#")
-        print("#################")
+        print("###############")
+        print("#RECUIT SIMULE#")
+        print("###############")
         print()
 
         x = queue.Queue()
@@ -262,17 +254,17 @@ class Tabu:
         threads = []
         for part in mods:
             thread = threading.Thread(target=self.optimization,
-                                      args=(part, n_tabu, n_gen, n_neighbors, n_mute_max, data,
-                                            dummiesList, createDummies, normalize, metric, x, y, besties, names, iters))
+                                      args=(part, temperature, alpha, final_temperature, data, dummiesList,
+                                            createDummies, normalize, metric, x, y, besties, names, iters))
             threads.append(thread)
             thread.start()
 
         for thread in threads:
             thread.join()
 
-        return utility.res(heuristic="Recherche tabou", x=list(x.queue), y=list(y.queue), z=list(z.queue),
+        return utility.res(heuristic="Recuit simulé", x=list(x.queue), y=list(y.queue), z=list(z.queue),
                            besties=list(besties.queue), names=list(names.queue), iters=list(iters.queue),
-                           metric=metric, path=self.path2, n_gen=n_gen-1, self=self)
+                           metric=metric, path=self.path2, n_gen=temperature-1, self=self)
 
 
 if __name__ == '__main__':
@@ -286,11 +278,11 @@ if __name__ == '__main__':
     d2, target, copy, copy2, copy3, copy4, dummiesLst, ratio, chi2, anova2, originLst =\
         d.ready(deleteCols=True, dropna=True, thresholdDrop=70, createDummies=True, normalize=False)
 
-    tabu = Tabu(d2, d, ['lr'], target, originLst, name)
-    n_tab = 200
-    gen = 5
-    nei = 5
+    simulated = Simulated(d2, d, ['lr'], target, originLst, name)
+    temperature = 10
+    alpha = 1
+    final = 0
     mut = copy.columns.size - 1
-    g1, g2, g3, g4, g5 = tabu.init(n_tabu=n_tab, n_gen=gen, n_neighbors=nei, n_mute_max=mut, data=copy2,
-                                   dummiesList=d.dummiesList, createDummies=createDummies, normalize=normalize,
-                                   metric="accuracy")
+    g1, g2, g3, g4, g5 = simulated.init(temperature=10, alpha=1, final_temperature=0, data=copy2,
+                                        dummiesList=d.dummiesList, createDummies=createDummies, normalize=normalize,
+                                        metric="accuracy")

@@ -1,6 +1,6 @@
-import machineLearning.data as data
-import machineLearning.tab as tab
-import machineLearning.utility as utility
+import machineLearning.preprocessing.data as data
+import machineLearning.tab.tab as tab
+import machineLearning.utility.utility as utility
 
 import threading
 import queue
@@ -245,7 +245,7 @@ class PSO:
         self.listModels = listModels
         self.target = target
         self.copy = copy
-        self.path2 = os.path.dirname(os.getcwd()) + '/out'
+        self.path2 = os.getcwd() + '/out'
         self.data_name = data_name
 
     def write_res(self, folderName, mode, n_pop, n_gen, w, c1, c2, y1, yX, colMax,

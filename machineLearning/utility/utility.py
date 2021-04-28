@@ -1,4 +1,4 @@
-import machineLearning.tab as tab
+import machineLearning.tab.tab as tab
 
 from sklearn.linear_model import LogisticRegression, SGDClassifier, RidgeClassifier
 from sklearn.svm import SVC
