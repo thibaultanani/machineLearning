@@ -34,7 +34,7 @@ class Data:
     @staticmethod
     def __read(filename):
         try:
-            data = pd.read_excel(filename + '.xlsx', index_col=None)
+            data = pd.read_excel(filename + '.xlsx', index_col=None, engine='openpyxl')
         except:
             data = pd.read_csv(filename + '.csv', index_col=None, sep=',')
         return data
