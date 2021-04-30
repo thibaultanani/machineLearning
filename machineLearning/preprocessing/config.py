@@ -3,7 +3,7 @@
 general = {
     "dataset": "madelon",
     "target": "Class",
-    "heuristic": "genetic",
+    "heuristic": "gentic",
     "deletecol": True,
     "dropna": True,
     "normalize": False,
@@ -34,6 +34,14 @@ swarm = {
     "w": 0.5,
     "c1": 0.5,
     "c2": 0.5,
+}
+
+ant = {
+    "pop": 5,
+    "gen": 5,
+    "p": 0.5,
+    "phi": 0.8,
+    "alpha": 2
 }
 
 hill = {

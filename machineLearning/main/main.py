@@ -1,7 +1,7 @@
 import machineLearning.preprocessing.config as cfg
 
 from machineLearning.preprocessing import data
-from machineLearning.heuristics import hill, genetic, iterated, differential, simulated, swarm, tabu, vns
+from machineLearning.heuristics import hill, genetic, iterated, differential, simulated, swarm, tabu, vns, ant
 
 if __name__ == '__main__':
     d = data.Data(name=cfg.general['dataset'], target=cfg.general['target'], dropColsList=cfg.general['dropcol'],
@@ -30,6 +30,12 @@ if __name__ == '__main__':
         heuristic = swarm.PSO(d2, d, methods, target, origin, name)
         g1, g2, g3, g4, g5 = heuristic.init(n_pop=cfg.swarm['pop'], n_gen=cfg.swarm['gen'], w=cfg.swarm['w'],
                                             c1=cfg.swarm['c1'], c2=cfg.swarm['c2'], data=copy2,
+                                            dummiesList=dummiesLst, createDummies=createDummies, normalize=normalize,
+                                            metric=metric)
+    elif cfg.general['heuristic'] == 'ant':
+        heuristic = ant.ACO(d2, d, methods, target, origin, name)
+        g1, g2, g3, g4, g5 = heuristic.init(n_pop=cfg.ant['pop'], n_gen=cfg.ant['gen'], p=cfg.ant['p'],
+                                            phi=cfg.ant['phi'], alpha=cfg.ant['alpha'], data=copy2,
                                             dummiesList=dummiesLst, createDummies=createDummies, normalize=normalize,
                                             metric=metric)
     elif cfg.general['heuristic'] == 'hill':
@@ -63,4 +69,4 @@ if __name__ == '__main__':
     else:
         print(cfg.general['heuristic'] +
               " n'est pas un nom d'heristique correct, veuillez choisir parmis les suivants:\n" +
-              "genetic, differential, swarm, hill, tabu, simulated, vns, iterated")
+              "genetic, differential, swarm, ant, hill, tabu, simulated, vns, iterated")
