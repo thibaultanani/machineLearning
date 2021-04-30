@@ -35,24 +35,18 @@ class Iterated:
                   bestScoreA, bestScoreP, bestScoreR, bestScoreF, bestModel, debut):
         a = os.path.join(os.path.join(self.path2, folderName), 'resultat.txt')
         f = open(a, "w")
-        f.write("mode: " + mode + os.linesep)
-        f.write("générations: " + str(n_gen) + os.linesep)
-        f.write("générations vnd: " + str(n_gen_vnd) + os.linesep)
-        f.write("nombre de k: " + str(kmax) + os.linesep)
-        f.write("voisins: " + str(n_neighbors) + os.linesep)
-        f.write("meilleur: " + str(y1) + os.linesep)
-        f.write("classes: " + str(yX) + os.linesep)
-        f.write("colonnes:" + str(colMax.tolist()) + os.linesep)
-        f.write("meilleur score: " + str(bestScore) + os.linesep)
-        f.write("meilleure exactitude: " + str(bestScoreA) + os.linesep)
-        f.write("meilleure precision: " + str(bestScoreP) + os.linesep)
-        f.write("meilleur rappel: " + str(bestScoreR) + os.linesep)
-        f.write("meilleur fscore: " + str(bestScoreF) + os.linesep)
-        f.write("meilleur model: " + str(bestModel) + os.linesep)
-        f.write("temps total: " + str(timedelta(seconds=(time.time() - debut))) + os.linesep)
-        f.write("mémoire: " + str(psutil.virtual_memory()) + os.linesep)
-        f.write("Insertions dans le tableau: " + str(self.tab_insert) + os.linesep)
-        f.write("Valeur présente dans le tableau: " + str(self.tab_find) + os.linesep)
+        string = "mode: " + mode + os.linesep + "générations: " + str(n_gen) + os.linesep + "générations vnd: " +\
+                 str(n_gen_vnd) + os.linesep + "nombre de k: " + str(kmax) + os.linesep + "voisins: " +\
+                 str(n_neighbors) + os.linesep + "mutations: " + "meilleur: " + str(y1) + os.linesep + "classes: " +\
+                 str(yX) + os.linesep + "colonnes:" + str(colMax.tolist()) + os.linesep + "meilleur score: " +\
+                 str(bestScore) + os.linesep + "meilleure exactitude: " + str(bestScoreA) + os.linesep +\
+                 "meilleure precision: " + str(bestScoreP) + os.linesep + "meilleur rappel: " + str(bestScoreR) +\
+                 os.linesep + "meilleur fscore: " + str(bestScoreF) + os.linesep + "meilleur model: " +\
+                 str(bestModel) + os.linesep + "temps total: " + str(timedelta(seconds=(time.time() - debut))) +\
+                 os.linesep + "mémoire: " + str(psutil.virtual_memory()) + os.linesep +\
+                 "Insertions dans le tableau: " + str(self.tab_insert) + os.linesep +\
+                 "Valeur présente dans le tableau: " + str(self.tab_find) + os.linesep
+        f.write(string)
         f.close()
 
     def generate_neighbors(self, solution, n_neighbors):

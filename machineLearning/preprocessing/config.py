@@ -3,7 +3,7 @@
 general = {
     "dataset": "madelon",
     "target": "Class",
-    "heuristic": "gentic",
+    "heuristic": "simulated",
     "deletecol": True,
     "dropna": True,
     "normalize": False,

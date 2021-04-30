@@ -59,31 +59,22 @@ class Differential:
                   bestModel, debut):
         a = os.path.join(os.path.join(self.path2, folderName), 'resultat.txt')
         f = open(a, "w")
-        f.write("mode: " + mode + os.linesep)
-        f.write("population: " + str(n_pop) + os.linesep)
-        f.write("générations: " + str(n_gen) + os.linesep)
-        f.write("probabilité de crisement: " + str(cross_proba) + os.linesep)
-        f.write("F: " + str(F) + os.linesep)
-        f.write("moyenne: " + str(y1) + os.linesep)
-        f.write("meilleur: " + str(y2) + os.linesep)
-        f.write("classes: " + str(yX) + os.linesep)
-        f.write("colonnes:" + str(colMax.tolist()) + os.linesep)
-        f.write("scores:" + str(bestScorePro) + os.linesep)
-        f.write("exactitude:" + str(bestAPro) + os.linesep)
-        f.write("precision:" + str(bestPPro) + os.linesep)
-        f.write("rappel:" + str(bestRPro) + os.linesep)
-        f.write("fscore:" + str(bestFPro) + os.linesep)
-        f.write("model:" + str(bestModelPro) + os.linesep)
-        f.write("meilleur score: " + str(bestScore) + os.linesep)
-        f.write("meilleure exactitude: " + str(bestScoreA) + os.linesep)
-        f.write("meilleure precision: " + str(bestScoreP) + os.linesep)
-        f.write("meilleur rappel: " + str(bestScoreR) + os.linesep)
-        f.write("meilleur fscore: " + str(bestScoreF) + os.linesep)
-        f.write("meilleur model: " + str(bestModel) + os.linesep)
-        f.write("temps total: " + str(timedelta(seconds=(time.time() - debut))) + os.linesep)
-        f.write("mémoire: " + str(psutil.virtual_memory()) + os.linesep)
-        f.write("Insertions dans le tableau: " + str(self.tab_insert) + os.linesep)
-        f.write("Valeur présente dans le tableau: " + str(self.tab_find) + os.linesep)
+        string = "mode: " + mode + os.linesep + "population: " + str(n_pop) + os.linesep +\
+                 "générations: " + str(n_gen) + os.linesep + "probabilité de crisement: " + str(cross_proba) +\
+                 os.linesep + "F: " + str(F) + os.linesep + "moyenne: " + str(y1) + os.linesep + "meilleur: " +\
+                 str(y2) + os.linesep + "classes: " + str(yX) + os.linesep + "colonnes:" + str(colMax.tolist()) +\
+                 os.linesep + "scores:" + str(bestScorePro) + os.linesep + "exactitude:" + str(bestAPro) + os.linesep +\
+                 "precision:" + str(bestPPro) + os.linesep + "rappel:" + str(bestRPro) + os.linesep +\
+                 "fscore:" + str(bestFPro) + os.linesep + "model:" + str(bestModelPro) + os.linesep +\
+                 "meilleur score: " + str(bestScore) + os.linesep + "meilleure exactitude: " + str(bestScoreA) +\
+                 os.linesep + "meilleure precision: " + str(bestScoreP) + os.linesep + "meilleur rappel: " +\
+                 str(bestScoreR) + os.linesep + "meilleur fscore: " + str(bestScoreF) + os.linesep +\
+                 "meilleur model: " + str(bestModel) + os.linesep + "temps total: " +\
+                 str(timedelta(seconds=(time.time() - debut))) + os.linesep + "mémoire: " +\
+                 str(psutil.virtual_memory()) + os.linesep + "Insertions dans le tableau: " +\
+                 str(self.tab_insert) + os.linesep + "Valeur présente dans le tableau: " +\
+                 str(self.tab_find) + os.linesep
+        f.write(string)
         f.close()
 
     def selection(self, pop, mutants, n_pop):
@@ -185,13 +176,14 @@ class Differential:
                 obj.tab_data, obj.tab_vals, obj.tab_insert, obj.tab_find
 
             bestScore = np.max(scores)
-            bestModel = models[np.argmax(scores)]
-            bestInd = inds[np.argmax(scores)]
-            bestCols = cols[np.argmax(scores)]
-            bestScoreA = scoresA[np.argmax(scores)]
-            bestScoreP = scoresP[np.argmax(scores)]
-            bestScoreR = scoresR[np.argmax(scores)]
-            bestScoreF = scoresF[np.argmax(scores)]
+            argmax = np.argmax(scores)
+            bestModel = models[argmax]
+            bestInd = inds[argmax]
+            bestCols = cols[argmax]
+            bestScoreA = scoresA[argmax]
+            bestScoreP = scoresP[argmax]
+            bestScoreR = scoresR[argmax]
+            bestScoreF = scoresF[argmax]
 
             bestScorePro.append(bestScore)
             bestModelPro.append(bestModel)
@@ -259,13 +251,14 @@ class Differential:
                     self.selection(pop_score, mut_score, n_pop)
 
                 bestScore = np.max(scores)
-                bestModel = models[np.argmax(scores)]
-                bestInd = pop[np.argmax(scores)]
-                bestCols = cols[np.argmax(scores)]
-                bestScoreA = scoresA[np.argmax(scores)]
-                bestScoreP = scoresP[np.argmax(scores)]
-                bestScoreR = scoresR[np.argmax(scores)]
-                bestScoreF = scoresF[np.argmax(scores)]
+                argmax = np.argmax(scores)
+                bestModel = models[argmax]
+                bestInd = pop[argmax]
+                bestCols = cols[argmax]
+                bestScoreA = scoresA[argmax]
+                bestScoreP = scoresP[argmax]
+                bestScoreR = scoresR[argmax]
+                bestScoreF = scoresF[argmax]
                 bestScorePro.append(bestScore)
                 bestModelPro.append(bestModel)
                 bestIndsPro.append(bestInd)

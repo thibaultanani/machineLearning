@@ -82,32 +82,22 @@ class ACO:
                   bestModel, debut):
         a = os.path.join(os.path.join(self.path2, folderName), 'resultat.txt')
         f = open(a, "w")
-        f.write("mode: " + mode + os.linesep)
-        f.write("population: " + str(n_pop) + os.linesep)
-        f.write("générations: " + str(n_gen) + os.linesep)
-        f.write("p: " + str(p) + os.linesep)
-        f.write("phi: " + str(phi) + os.linesep)
-        f.write("alpha: " + str(alpha) + os.linesep)
-        f.write("moyenne: " + str(y1) + os.linesep)
-        f.write("meilleur: " + str(y2) + os.linesep)
-        f.write("classes: " + str(yX) + os.linesep)
-        f.write("colonnes:" + str(colMax.tolist()) + os.linesep)
-        f.write("scores:" + str(bestScorePro) + os.linesep)
-        f.write("exactitude:" + str(bestAPro) + os.linesep)
-        f.write("precision:" + str(bestPPro) + os.linesep)
-        f.write("rappel:" + str(bestRPro) + os.linesep)
-        f.write("fscore:" + str(bestFPro) + os.linesep)
-        f.write("model:" + str(bestModelPro) + os.linesep)
-        f.write("meilleur score: " + str(bestScore) + os.linesep)
-        f.write("meilleure exactitude: " + str(bestScoreA) + os.linesep)
-        f.write("meilleure precision: " + str(bestScoreP) + os.linesep)
-        f.write("meilleur rappel: " + str(bestScoreR) + os.linesep)
-        f.write("meilleur fscore: " + str(bestScoreF) + os.linesep)
-        f.write("meilleur model: " + str(bestModel) + os.linesep)
-        f.write("temps total: " + str(timedelta(seconds=(time.time() - debut))) + os.linesep)
-        f.write("mémoire: " + str(psutil.virtual_memory()) + os.linesep)
-        f.write("Insertions dans le tableau: " + str(self.tab_insert) + os.linesep)
-        f.write("Valeur présente dans le tableau: " + str(self.tab_find) + os.linesep)
+        string = "mode: " + mode + os.linesep + "population: " + str(n_pop) + os.linesep +\
+                 "générations: " + str(n_gen) + os.linesep + "p: " + str(p) + os.linesep + "phi: " + str(phi) +\
+                 os.linesep + "alpha: " + str(alpha) + os.linesep + "moyenne: " + str(y1) + os.linesep + "meilleur: " +\
+                 str(y2) + os.linesep + "classes: " + str(yX) + os.linesep + "colonnes:" + str(colMax.tolist()) +\
+                 os.linesep + "scores:" + str(bestScorePro) + os.linesep + "exactitude:" + str(bestAPro) + os.linesep +\
+                 "precision:" + str(bestPPro) + os.linesep + "rappel:" + str(bestRPro) + os.linesep +\
+                 "fscore:" + str(bestFPro) + os.linesep + "model:" + str(bestModelPro) + os.linesep +\
+                 "meilleur score: " + str(bestScore) + os.linesep + "meilleure exactitude: " + str(bestScoreA) +\
+                 os.linesep + "meilleure precision: " + str(bestScoreP) + os.linesep + "meilleur rappel: " +\
+                 str(bestScoreR) + os.linesep + "meilleur fscore: " + str(bestScoreF) + os.linesep +\
+                 "meilleur model: " + str(bestModel) + os.linesep + "temps total: " +\
+                 str(timedelta(seconds=(time.time() - debut))) + os.linesep + "mémoire: " +\
+                 str(psutil.virtual_memory()) + os.linesep + "Insertions dans le tableau: " +\
+                 str(self.tab_insert) + os.linesep + "Valeur présente dans le tableau: " +\
+                 str(self.tab_find) + os.linesep
+        f.write(string)
         f.close()
 
     def optimization(self, part, n_pop, n_gen, p, phi, alpha, data, dummiesList,
@@ -254,17 +244,17 @@ class ACO:
                       " temps total: ", str(timedelta(seconds=(time.time() - debut))))
 
                 # La moyenne sur les n_pop/2 premiers de la population
-                y1.append(np.mean(heapq.nlargest(int(n_pop/2), scores)))
-                y2.append(bestScore)
+                y1.append(bestScore)
+                y2.append(max(bestScorePro))
                 fig, ax = plt.subplots()
                 ax.plot(x1, y1)
-                # ax.plot(x1, y2)
+                ax.plot(x1, y2)
                 ax.set_title("Evolution du score par génération (" + folderName + ")"
                              + "\nOptimisation par colonie de fourmis")
                 ax.set_xlabel("génération")
                 ax.set_ylabel(metric)
                 ax.grid()
-                ax.legend(labels=["Le meilleur"],
+                ax.legend(labels=["Valeur actuelle", "Le meilleur"],
                           loc='center left', bbox_to_anchor=(1.04, 0.5), borderaxespad=0)
                 a = os.path.join(os.path.join(self.path2, folderName), 'plot_' + str(n_gen) + '.png')
                 b = os.path.join(os.getcwd(), a)
@@ -383,7 +373,7 @@ if __name__ == '__main__':
         d.ready(deleteCols=True, dropna=True, thresholdDrop=70, createDummies=True, normalize=False)
 
     aco = ACO(d2, d, ['lr'], target, originLst, name)
-    pop = 20
+    pop = 40
     gen = 10
     p = 0.5
     phi = 0.8

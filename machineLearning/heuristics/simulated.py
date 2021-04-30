@@ -36,23 +36,17 @@ class Simulated:
                   bestScoreA, bestScoreP, bestScoreR, bestScoreF, bestModel, debut):
         a = os.path.join(os.path.join(self.path2, folderName), 'resultat.txt')
         f = open(a, "w")
-        f.write("mode: " + mode + os.linesep)
-        f.write("température initiale: " + str(temperature) + os.linesep)
-        f.write("alpha: " + str(alpha) + os.linesep)
-        f.write("température finale: " + str(final_temperature) + os.linesep)
-        f.write("meilleur: " + str(y1) + os.linesep)
-        f.write("classes: " + str(yX) + os.linesep)
-        f.write("colonnes:" + str(colMax.tolist()) + os.linesep)
-        f.write("meilleur score: " + str(bestScore) + os.linesep)
-        f.write("meilleure exactitude: " + str(bestScoreA) + os.linesep)
-        f.write("meilleure precision: " + str(bestScoreP) + os.linesep)
-        f.write("meilleur rappel: " + str(bestScoreR) + os.linesep)
-        f.write("meilleur fscore: " + str(bestScoreF) + os.linesep)
-        f.write("meilleur model: " + str(bestModel) + os.linesep)
-        f.write("temps total: " + str(timedelta(seconds=(time.time() - debut))) + os.linesep)
-        f.write("mémoire: " + str(psutil.virtual_memory()) + os.linesep)
-        f.write("Insertions dans le tableau: " + str(self.tab_insert) + os.linesep)
-        f.write("Valeur présente dans le tableau: " + str(self.tab_find) + os.linesep)
+        string = "mode: " + mode + os.linesep + "température initiale: " + str(temperature) + os.linesep + "alpha: " +\
+                 str(alpha) + os.linesep + "température finale: " + str(final_temperature) + os.linesep +\
+                 "meilleur: " + str(y1) + os.linesep + "classes: " + str(yX) + os.linesep + "colonnes:" +\
+                 str(colMax.tolist()) + os.linesep + "meilleur score: " + str(bestScore) + os.linesep +\
+                 "meilleure exactitude: " + str(bestScoreA) + os.linesep + "meilleure precision: " + str(bestScoreP) +\
+                 os.linesep + "meilleur rappel: " + str(bestScoreR) + os.linesep + "meilleur fscore: " +\
+                 str(bestScoreF) + os.linesep + "meilleur model: " + str(bestModel) + os.linesep + "temps total: " +\
+                 str(timedelta(seconds=(time.time() - debut))) + os.linesep + "mémoire: " +\
+                 str(psutil.virtual_memory()) + os.linesep + "Insertions dans le tableau: " + str(self.tab_insert) +\
+                 os.linesep + "Valeur présente dans le tableau: " + str(self.tab_find) + os.linesep
+        f.write(string)
         f.close()
 
     def optimization(self, part, temperature, alpha, final_temperature, data,
