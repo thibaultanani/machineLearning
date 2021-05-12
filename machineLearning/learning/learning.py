@@ -1,6 +1,8 @@
 import machineLearning.preprocessing.data as data
 
 import numpy as np
+import time
+from datetime import timedelta
 from sklearn import model_selection
 from sklearn.linear_model import LogisticRegression, SGDClassifier, RidgeClassifier
 from sklearn.metrics import classification_report, confusion_matrix
@@ -13,6 +15,7 @@ from sklearn.discriminant_analysis import LinearDiscriminantAnalysis, QuadraticD
 from sklearn.naive_bayes import GaussianNB
 from imblearn.over_sampling import SMOTE
 from sklearn.metrics import precision_recall_fscore_support as s
+from sklearn.metrics import accuracy_score
 from sklearn.preprocessing import label_binarize
 from sklearn.impute import SimpleImputer
 from sklearn.preprocessing import StandardScaler
@@ -23,11 +26,13 @@ class Learning:
 
     """Classe définissant la partie d'aprentissage pour un modèle"""
 
-    def __init__(self, data, listModels, target, copy):
+    def __init__(self, data, listModels, target, copy, warm_start):
         self.data = data
         self.listModels = listModels
         self.target = target
         self.copy = copy
+        if warm_start:
+            self.data = self.data[warm_start + [target]]
 
     @staticmethod
     def __classification_report_with_accuracy_score(y_true, y_pred, originalclass, predictedclass):
@@ -214,6 +219,7 @@ class Learning:
                 model = Pipeline(memory=None,
                                  steps=[('simpleimputer', simpleimputer), ('standardscaler', standardscaler),
                                         ('randomforestclassifier', randomforestclassifier)])
+                #model = RandomForestClassifier(n_estimators=10, bootstrap=False, random_state=1)
                 print("RandomForestClassifier\n")
             elif mods == 'dtc':
                 mName = 'Arbres de décision [DT]'
@@ -238,7 +244,7 @@ class Learning:
             elif mods == 'bac':
                 mName = 'Bootstrap Aggregating [BA]'
                 mName2 = 'BA'
-                model = BaggingClassifier()
+                model = BaggingClassifier(base_estimator=RandomForestClassifier(n_estimators=100, bootstrap=False, random_state=1), n_estimators=300, random_state=42)
                 print("Bootstrap Aggregating\n")
             elif mods == 'lda':
                 mName = 'Analyse discriminante linéaire [LDA]'
@@ -270,7 +276,9 @@ class Learning:
             predictedclass = []
             bin_array = []
 
-            k = model_selection.StratifiedKFold(5)
+            debut = time.time()
+            k = model_selection.StratifiedKFold(50)
+            mean = []
             for train_index, test_index in k.split(X, y):  # Split in X
 
                 X_train, X_test = X[train_index], X[test_index]
@@ -290,8 +298,13 @@ class Learning:
 
                 matrix += confusion_matrix(y_test, y_pred)
 
+                print(accuracy_score(y_test, y_pred))
+                mean.append(accuracy_score(y_test, y_pred))
+
             print(matrix)
             print(classification_report(originalclass, predictedclass))
+            print("mean_accuracy:", sum(mean)/len(mean))
+            print("temps exe:", timedelta(seconds=(time.time() - debut)))
 
             precision, recall, fscore, support = s(originalclass, predictedclass, average='macro')
             specificity_tab = []
@@ -354,6 +367,6 @@ if __name__ == '__main__':
     var = 'Class'
     d = data.Data(name, var, [], [])
     d2, target, copy, copy2, copy3, copy4, dummiesLst, ratio, chi2, anova2, originLst =\
-        d.ready(deleteCols=True, dropna=True, thresholdDrop=70, createDummies=True, normalize=False)
-    learn = Learning(d2, ['dtc'], target, copy3)
+        d.ready(deleteCols=True, dropna=True, thresholdDrop=70, createDummies=True, normalize=True)
+    learn = Learning(d2, ['rdc'], target, copy3, ['V2', 'V3', 'V4', 'V5', 'V6', 'V7', 'V8', 'V9', 'V10', 'V13', 'V14', 'V15', 'V16', 'V17', 'V19', 'V20', 'V21', 'V22', 'V23', 'V26', 'V27', 'V28', 'V29', 'V30', 'V31', 'V32', 'V33', 'V34', 'V35', 'V36', 'V37', 'V38', 'V39', 'V40', 'V41', 'V42', 'V43', 'V44', 'V45', 'V48', 'V49', 'V50', 'V51', 'V52', 'V53', 'V54', 'V55', 'V57', 'V58', 'V59', 'V61', 'V62', 'V63', 'V64', 'V65', 'V66', 'V67', 'V68', 'V69', 'V71', 'V72', 'V73', 'V74', 'V75', 'V76', 'V77', 'V79', 'V80', 'V81', 'V83', 'V84', 'V85', 'V88', 'V89', 'V90', 'V91', 'V93', 'V94', 'V95', 'V96', 'V98', 'V100', 'V101', 'V102', 'V103', 'V104', 'V106', 'V107', 'V108', 'V111', 'V112', 'V114', 'V116', 'V117', 'V119', 'V121', 'V123', 'V124', 'V126', 'V127', 'V129', 'V130', 'V131', 'V132', 'V133', 'V134', 'V135', 'V138', 'V139', 'V140', 'V141', 'V142', 'V143', 'V144', 'V145', 'V146', 'V148', 'V150', 'V153', 'V154', 'V155', 'V156', 'V157', 'V158', 'V159', 'V160', 'V162', 'V163', 'V165', 'V166', 'V167', 'V168', 'V169', 'V170', 'V171', 'V172', 'V173', 'V174', 'V175', 'V178', 'V179', 'V180', 'V182', 'V183', 'V184', 'V185', 'V187', 'V188', 'V189', 'V190', 'V192', 'V193', 'V195', 'V196', 'V198', 'V199', 'V200', 'V203', 'V204', 'V206', 'V207', 'V210', 'V211', 'V212', 'V214', 'V215', 'V216', 'V217', 'V219', 'V220', 'V222', 'V223', 'V224', 'V227', 'V228', 'V229', 'V230', 'V231', 'V232', 'V233', 'V234', 'V235', 'V236', 'V238', 'V239', 'V242', 'V244', 'V245', 'V246', 'V247', 'V248', 'V249', 'V250', 'V251', 'V252', 'V254', 'V255', 'V256', 'V257', 'V258', 'V260', 'V261', 'V262', 'V265', 'V266', 'V267', 'V268', 'V269', 'V270', 'V271', 'V272', 'V273', 'V275', 'V276', 'V277', 'V278', 'V279', 'V280', 'V281', 'V282', 'V283', 'V284', 'V285', 'V287', 'V288', 'V289', 'V290', 'V291', 'V292', 'V293', 'V294', 'V295', 'V296', 'V297', 'V299', 'V300', 'V301', 'V302', 'V303', 'V304', 'V305', 'V308', 'V310', 'V311', 'V312', 'V314', 'V315', 'V316', 'V317', 'V318', 'V319', 'V320', 'V321', 'V322', 'V323', 'V324', 'V325', 'V326', 'V327', 'V328', 'V329', 'V330', 'V331', 'V333', 'V334', 'V335', 'V337', 'V338', 'V339', 'V340', 'V341', 'V342', 'V343', 'V344', 'V347', 'V348', 'V349', 'V350', 'V351', 'V352', 'V353', 'V354', 'V355', 'V356', 'V357', 'V358', 'V359', 'V360', 'V361', 'V362', 'V363', 'V364', 'V366', 'V367', 'V368', 'V369', 'V371', 'V372', 'V373', 'V374', 'V375', 'V376', 'V377', 'V378', 'V379', 'V380', 'V381', 'V382', 'V383', 'V384', 'V386', 'V388', 'V389', 'V390', 'V391', 'V392', 'V393', 'V394', 'V396', 'V397', 'V398', 'V399', 'V400', 'V401', 'V402', 'V403', 'V404', 'V405', 'V406', 'V407', 'V408', 'V409', 'V410', 'V411', 'V412', 'V414', 'V415', 'V416', 'V418', 'V419', 'V420', 'V421', 'V422', 'V424', 'V426', 'V427', 'V428', 'V429', 'V430', 'V431', 'V432', 'V433', 'V434', 'V435', 'V436', 'V437', 'V438', 'V439', 'V440', 'V441', 'V442', 'V443', 'V444', 'V445', 'V447', 'V448', 'V449', 'V450', 'V451', 'V452', 'V453', 'V454', 'V455', 'V456', 'V457', 'V458', 'V459', 'V460', 'V461', 'V462', 'V464', 'V465', 'V466', 'V467', 'V468', 'V469', 'V470', 'V473', 'V474', 'V476', 'V477', 'V479', 'V481', 'V482', 'V484', 'V485', 'V486', 'V487', 'V488', 'V489', 'V490', 'V491', 'V493', 'V494', 'V495', 'V496', 'V497', 'V498', 'V499', 'V500'])
     learn.init()

@@ -1,36 +1,36 @@
 # Fichier de config pour les heuritiques
 
 general = {
-    "dataset": "madelon",
-    "target": "Class",
-    "heuristic": "simulated",
+    "dataset": "scene",
+    "target": "Urban",
+    "heuristic": "tabu",
     "deletecol": True,
     "dropna": True,
-    "normalize": False,
+    "normalize": True,
     "createdummies": False,
     "dropcol": [],
     "dropclass": [],
     "thresholddrop": 70,
-    "method": ["lr"],
+    "method": ["svm"],
     "metric": "accuracy",
 }
 
 genetic = {
-    "pop": 10,
-    "gen": 10,
+    "pop": 20,
+    "gen": 200,
     "mut": 5,
 }
 
 differential = {
-    "pop": 5,
-    "gen": 5,
+    "pop": 20,
+    "gen": 200,
     "cross proba": 0.5,
     "F": 1,
 }
 
 swarm = {
-    "pop": 5,
-    "gen": 5,
+    "pop": 20,
+    "gen": 200,
     "w": 0.5,
     "c1": 0.5,
     "c2": 0.5,
@@ -45,18 +45,18 @@ ant = {
 }
 
 hill = {
-    "gen": 5,
-    "nei": 5,
+    "gen": 500,
+    "nei": 20,
 }
 
 tabu = {
     "tab": 200,
-    "gen": 5,
-    "nei": 5,
+    "gen": 500,
+    "nei": 20,
 }
 
 simulated = {
-    "temperature": 10,
+    "temperature": 500,
     "alpha": 1,
     "final": 0,
 }

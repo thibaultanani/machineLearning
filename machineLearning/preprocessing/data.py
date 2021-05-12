@@ -7,6 +7,7 @@ import os
 import shutil
 from scipy.stats import chi2_contingency
 from statsmodels.formula.api import ols
+from sklearn.preprocessing import MinMaxScaler
 import statsmodels.api as sm
 
 
@@ -41,9 +42,14 @@ class Data:
 
     # Retorune un dataframe normalisé
     @staticmethod
-    def __normalize(data):
-        data = (data - data.min()) / (data.max() - data.min())
-        return data.fillna(0)
+    def __normalize(data, target):
+        scaler = MinMaxScaler()
+        columns = data.drop(target, axis=1).columns
+        data[columns] = scaler.fit_transform(data[columns])
+        print(data)
+        print(data.columns)
+        print(len(data.columns))
+        return data
 
     # Retorune le nombre de NaN pour chaque colonne
     @staticmethod
@@ -262,7 +268,7 @@ class Data:
                 data[col] = data[col].astype(bool)
         copy3 = data.copy()
         self.dummiesList = self.createDummiesLst(data=data)
-        # chi2, anova = self.chi2(copy3)
+        # chi2, stat = self.chi2(copy3)
         chi2, anova = None, None
         # self.corr(copy3)
         if createDummies:
@@ -273,7 +279,7 @@ class Data:
             origin = data.copy()
         copy4 = data.copy()
         if normalize:
-            data = self.__normalize(data=data)
+            data = self.__normalize(data=data, target=self.target)
         return data, self.target, copy, copy2, copy3, copy4, dummiesLst, thresholdDrop, chi2, anova, origin
 
 

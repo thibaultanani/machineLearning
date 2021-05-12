@@ -11,9 +11,11 @@ from sklearn.naive_bayes import GaussianNB
 from sklearn.metrics import confusion_matrix
 from sklearn import model_selection
 from sklearn.metrics import precision_recall_fscore_support as s
+from sklearn.metrics import accuracy_score
 from sklearn.impute import SimpleImputer
-from sklearn.preprocessing import StandardScaler
+from sklearn.preprocessing import StandardScaler, MinMaxScaler
 from sklearn.pipeline import Pipeline
+from sklearn.feature_selection import SelectPercentile, chi2, f_classif
 from imblearn.over_sampling import SMOTE
 
 import pandas as pd
@@ -107,9 +109,11 @@ def _createDummies(data, dummiesList):
     return data, list1
 
 
-def _normalize(data):
-    data = (data - data.min()) / (data.max() - data.min())
-    return data.fillna(0)
+def _normalize(data, target):
+    scaler = MinMaxScaler()
+    columns = data.drop(target, axis=1).columns
+    data[columns] = scaler.fit_transform(data[columns])
+    return data
 
 
 def f7(seq):
@@ -179,7 +183,7 @@ def ready(self, ind, data, dummiesList, createDummies, normalize):
     data = data.assign(**kwargs)
     data = data.dropna()
     if normalize:
-        data = _normalize(data)
+        data = _normalize(data, self.target)
     X = data.drop([self.target], axis=1).values
     y = data[self.target].values
     return X, y, cols
@@ -213,9 +217,9 @@ def fitness(self, pop, mode, data, dummiesList, createDummies, normalize, metric
 
     if mode == 'sgd':
         model = SGDClassifier(class_weight='balanced', loss='modified_huber', random_state=1)
-    elif mode == 'svr':
+    elif mode == 'svm':
         model = SVC(kernel='linear', class_weight='balanced', probability=True)
-    elif mode == 'rdf':
+    elif mode == 'rbf':
         model = SVC(kernel='rbf', class_weight='balanced', probability=True)
     elif mode == 'pol':
         model = SVC(kernel='poly', class_weight='balanced', probability=True)
@@ -340,9 +344,9 @@ def fitness2(self, mode, solution, data, dummiesList, createDummies, normalize):
 
     if mode == 'sgd':
         model = SGDClassifier(class_weight='balanced', loss='modified_huber', random_state=1)
-    elif mode == 'svr':
+    elif mode == 'svm':
         model = SVC(kernel='linear', class_weight='balanced', probability=True)
-    elif mode == 'rdf':
+    elif mode == 'rbf':
         model = SVC(kernel='rbf', class_weight='balanced', probability=True)
     elif mode == 'pol':
         model = SVC(kernel='poly', class_weight='balanced', probability=True)

@@ -384,7 +384,7 @@ class Genetic:
                                bestScore=bestScore, bestScoreA=bestScoreA, bestScoreP=bestScoreP,
                                bestScoreR=bestScoreR, bestScoreF=bestScoreF, bestModel=bestModel, debut=debut)
 
-                if (generation % 5) == 0:
+                if (generation % 10) == 0:
                     print("Sauvegarde du tableau actuel dans les fichiers, génération:", generation)
                     tab.dump(self.tab_data, self.tab_vals, 'tab_' + self.data_name + '_' + mode)
 
