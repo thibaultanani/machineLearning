@@ -1,9 +1,9 @@
 # Fichier de config pour les heuritiques
 
 general = {
-    "dataset": "scene",
-    "target": "Urban",
-    "heuristic": "tabu",
+    "dataset": "madelon",
+    "target": "Class",
+    "heuristic": "genetic",
     "deletecol": True,
     "dropna": True,
     "normalize": True,
@@ -56,21 +56,20 @@ tabu = {
 }
 
 simulated = {
-    "temperature": 500,
+    "temperature": 5000,
     "alpha": 1,
     "final": 0,
 }
-
 vns = {
-    "gen": 5,
+    "gen": 200,
     "gen vnd": 2,
     "nei": 2,
     "kmax": 2,
 }
 
 iterated = {
-    "gen": 5,
+    "gen": 200,
     "gen vnd": 2,
-    "nei": 2,
+    "nei": 5,
     "kmax": 2,
 }
