@@ -3,7 +3,7 @@
 general = {
     "dataset": "madelon",
     "target": "Class",
-    "heuristic": "genetic",
+    "heuristic": "vns",
     "deletecol": True,
     "dropna": True,
     "normalize": True,
@@ -11,26 +11,26 @@ general = {
     "dropcol": [],
     "dropclass": [],
     "thresholddrop": 70,
-    "method": ["svm"],
+    "method": ["lr", "rrc", "knn"],
     "metric": "accuracy",
 }
 
 genetic = {
     "pop": 20,
-    "gen": 200,
+    "gen": 3,
     "mut": 5,
 }
 
 differential = {
     "pop": 20,
-    "gen": 200,
+    "gen": 3,
     "cross proba": 0.5,
     "F": 1,
 }
 
 swarm = {
     "pop": 20,
-    "gen": 200,
+    "gen": 3,
     "w": 0.5,
     "c1": 0.5,
     "c2": 0.5,
@@ -45,30 +45,30 @@ ant = {
 }
 
 hill = {
-    "gen": 500,
+    "gen": 10,
     "nei": 20,
 }
 
 tabu = {
     "tab": 200,
-    "gen": 500,
+    "gen": 10,
     "nei": 20,
 }
 
 simulated = {
-    "temperature": 5000,
+    "temperature": 20,
     "alpha": 1,
     "final": 0,
 }
 vns = {
-    "gen": 200,
+    "gen": 20,
     "gen vnd": 2,
     "nei": 2,
     "kmax": 2,
 }
 
 iterated = {
-    "gen": 200,
+    "gen": 20,
     "gen vnd": 2,
     "nei": 5,
     "kmax": 2,

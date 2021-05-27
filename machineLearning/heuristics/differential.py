@@ -56,7 +56,7 @@ class Differential:
 
     def write_res(self, folderName, mode, n_pop, n_gen, cross_proba, F, y1, y2, yX, colMax, bestScorePro, bestAPro, bestPPro,
                   bestRPro, bestFPro, bestModelPro, bestScore, bestScoreA, bestScoreP, bestScoreR, bestScoreF,
-                  bestModel, debut):
+                  bestModel, debut, out, yTps):
         a = os.path.join(os.path.join(self.path2, folderName), 'resultat.txt')
         f = open(a, "w")
         string = "mode: " + mode + os.linesep + "population: " + str(n_pop) + os.linesep +\
@@ -73,9 +73,12 @@ class Differential:
                  str(timedelta(seconds=(time.time() - debut))) + os.linesep + "mémoire: " +\
                  str(psutil.virtual_memory()) + os.linesep + "Insertions dans le tableau: " +\
                  str(self.tab_insert) + os.linesep + "Valeur présente dans le tableau: " +\
-                 str(self.tab_find) + os.linesep
+                 str(self.tab_find) + os.linesep + "temps total: " + str(yTps) + os.linesep
         f.write(string)
         f.close()
+        a = os.path.join(os.path.join(self.path2, folderName), 'print.txt')
+        f = open(a, "w")
+        f.write(out)
 
     def selection(self, pop, mutants, n_pop):
         pop_list = []
@@ -114,9 +117,10 @@ class Differential:
         return np.array(newpop), scores, models, cols, scoresA, scoresP, scoresR, scoresF
 
     def natural_selection(self, part, n_pop, n_gen, cross_proba, F, data, dummiesList,
-                          createDummies, normalize, metric, x, y, besties, names, iters):
+                          createDummies, normalize, metric, x, y, besties, names, iters, times, names2):
 
         debut = time.time()
+        print_out = ""
 
         for mode in part:
 
@@ -131,6 +135,8 @@ class Differential:
 
             x2 = []
             yX = []
+
+            yTps = []
 
             scoreMax = 0
             modelMax = 0
@@ -207,10 +213,17 @@ class Differential:
             x2.append(tmp2[:])
             yX.append(tmp[:])
 
-            print(mode + " génération: 0" +
-                  " moyenne: " + str(np.mean(heapq.nlargest(int(n_pop/2), scores))) + " meilleur: " + str(bestScore) +
-                  " temps exe: " + str(timedelta(seconds=(time.time() - instant))) +
-                  " temps total: " + str(timedelta(seconds=(time.time() - debut))))
+            tps_debut = timedelta(seconds=(time.time() - debut))
+            yTps.append(tps_debut.total_seconds())
+
+            print_out = \
+                print_out + mode + " génération: 0" +\
+                " moyenne: " + str(np.mean(heapq.nlargest(int(n_pop/2), scores))) +\
+                " meilleur: " + str(bestScore) +\
+                " temps exe: " + str(timedelta(seconds=(time.time() - instant))) +\
+                " temps total: " + str(tps_debut) + "\n"
+
+            print(print_out, end="")
 
             generation = 0
             for generation in range(n_gen):
@@ -270,11 +283,23 @@ class Differential:
 
                 c = Counter(scores)
 
+                mean_scores = np.mean(heapq.nlargest(int(n_pop / 2), scores))
+                tps_instant = timedelta(seconds=(time.time() - instant))
+                tps_debut = timedelta(seconds=(time.time() - debut))
+                yTps.append(tps_debut.total_seconds())
+
+                print_out = \
+                    print_out + mode + " génération: " + str(generation + 1) +\
+                    " moyenne: " + str(mean_scores) +\
+                    " meilleur: " + str(bestScore) +\
+                    " temps exe: " + str(tps_instant) +\
+                    " temps total: " + str(tps_debut) + "\n"
+
                 print(mode + " génération: " + str(generation + 1) +
-                      " moyenne: " + str(np.mean(heapq.nlargest(int(n_pop / 2), scores))) +
+                      " moyenne: " + str(mean_scores) +
                       " meilleur: " + str(bestScore) +
-                      " temps exe: " + str(timedelta(seconds=(time.time() - instant))) +
-                      " temps total: " + str(timedelta(seconds=(time.time() - debut))))
+                      " temps exe: " + str(tps_instant) +
+                      " temps total: " + str(tps_debut))
 
                 x1.append(generation + 1)
                 # La moyenne sur les n_pop/2 premiers de la population
@@ -283,11 +308,13 @@ class Differential:
                 fig, ax = plt.subplots()
                 ax.plot(x1, y1)
                 ax.plot(x1, y2)
-                ax.set_title("Evolution du score par génération (" + folderName + ")")
+                ax.set_title("Evolution du score par génération (" + folderName + ")"
+                             + "\nEvolution différentielle")
                 ax.set_xlabel("génération")
                 ax.set_ylabel(metric)
                 ax.grid()
-                ax.legend(labels=["moyenne des " + str(int(n_pop/2)) + " meilleurs", "Le meilleur"],
+                ax.legend(labels=["moyenne des " + str(int(n_pop/2)) + " meilleurs: " + "{:.3f}".format(mean_scores),
+                                  "Le meilleur: " + "{:.3f}".format(bestScore)],
                           loc='center left', bbox_to_anchor=(1.04, 0.5), borderaxespad=0)
                 a = os.path.join(os.path.join(self.path2, folderName), 'plot_' + str(n_gen) + '.png')
                 b = os.path.join(os.getcwd(), a)
@@ -308,7 +335,8 @@ class Differential:
 
                 ax2.plot(x1, yX)
 
-                ax2.set_title("Evolution du score par génération pour chacune des classes (" + folderName + ")")
+                ax2.set_title("Evolution du score par génération pour chacune des classes (" + folderName + ")"
+                              + "\nEvolution différentielle")
                 ax2.set_xlabel("génération")
                 ax2.set_ylabel(metric)
                 ax2.grid()
@@ -318,6 +346,21 @@ class Differential:
                 # if generation == n_gen-1:
                 fig2.savefig(os.path.abspath(b), bbox_inches="tight")
                 plt.close(fig2)
+
+                fig3, ax3 = plt.subplots()
+                ax3.plot(x1, yTps)
+                ax3.set_title("Evolution du temps d'exécution par génération (" + folderName + ")"
+                              + "\nEvolution différentielle")
+                ax3.set_xlabel("génération")
+                ax3.set_ylabel("Temps en seconde")
+                ax3.grid()
+                ax3.legend(labels=["Temps total: " + "{:.0f}".format(tps_debut.total_seconds())],
+                           loc='center left', bbox_to_anchor=(1.04, 0.5), borderaxespad=0)
+                a = os.path.join(os.path.join(self.path2, folderName), 'plotTps_' + str(n_gen) + '.png')
+                b = os.path.join(os.getcwd(), a)
+                fig3.savefig(os.path.abspath(b), bbox_inches="tight")
+                plt.close(fig3)
+
 
                 generation = generation + 1
 
@@ -335,9 +378,10 @@ class Differential:
                                F=F, y1=y1, y2=y2, yX=yX, colMax=colMax, bestScorePro=bestScorePro, bestAPro=bestAPro,
                                bestPPro=bestPPro, bestRPro=bestRPro, bestFPro=bestFPro, bestModelPro=bestModelPro,
                                bestScore=bestScore, bestScoreA=bestScoreA, bestScoreP=bestScoreP,
-                               bestScoreR=bestScoreR, bestScoreF=bestScoreF, bestModel=bestModel, debut=debut)
+                               bestScoreR=bestScoreR, bestScoreF=bestScoreF, bestModel=bestModel, debut=debut,
+                               out=print_out, yTps=yTps)
 
-                if (generation % 5) == 0:
+                if (generation % 10) == 0:
                     print("Sauvegarde du tableau actuel dans les fichiers, génération:", generation)
                     tab.dump(self.tab_data, self.tab_vals, 'tab_' + self.data_name + '_' + mode)
 
@@ -350,6 +394,8 @@ class Differential:
             besties.put(y2)
             names.put(folderName + ": " + "{:.3f}".format(scoreMax))
             iters.put(generation)
+            times.put(yTps)
+            names2.put(folderName + ": " + "{:.0f}".format(tps_debut.total_seconds()))
 
             tab.dump(self.tab_data, self.tab_vals, 'tab_' + self.data_name + '_' + mode)
 
@@ -366,6 +412,8 @@ class Differential:
         besties = queue.Queue()
         names = queue.Queue()
         iters = queue.Queue()
+        times = queue.Queue()
+        names2 = queue.Queue()
 
         if isinstance(self.listModels, str):
             if self.listModels == 'all':
@@ -381,7 +429,8 @@ class Differential:
         for part in mods:
             thread = threading.Thread(target=self.natural_selection,
                                       args=(part, n_pop, n_gen, cross_proba, F, data, dummiesList,
-                                            createDummies, normalize, metric, x, y, besties, names, iters))
+                                            createDummies, normalize, metric, x, y, besties,
+                                            names, iters, times, names2))
             threads.append(thread)
             thread.start()
 
@@ -390,7 +439,8 @@ class Differential:
 
         return utility.res(heuristic="Evolution différentielle", x=list(x.queue), y=list(y.queue), z=list(z.queue),
                            besties=list(besties.queue), names=list(names.queue), iters=list(iters.queue),
-                           metric=metric, path=self.path2, n_gen=n_gen, self=self)
+                           times=list(times.queue), names2=list(names2.queue), metric=metric, path=self.path2,
+                           n_gen=n_gen, self=self)
 
 
 if __name__ == '__main__':

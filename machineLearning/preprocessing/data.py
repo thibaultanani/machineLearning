@@ -40,6 +40,14 @@ class Data:
             data = pd.read_csv(filename + '.csv', index_col=None, sep=',')
         return data
 
+    # Ecriture d'un fichier xlsx
+    def write(self, filename, data):
+        try:
+            data.to_excel(os.path.join(self.path2, filename + '.xlsx'), index=False)
+        except:
+            data.to_csv(os.path.join(self.path2, filename + '.csv'), index=False)
+        return data
+
     # Retorune un dataframe normalisé
     @staticmethod
     def __normalize(data, target):
@@ -284,10 +292,13 @@ class Data:
 
 
 if __name__ == '__main__':
-    d = Data('mdcolab', 'covid19_test_results',
-             ['test_name', 'swab_type'], [])
+    name = 'patient_db'
+    var = 'survived'
+    d = Data(name, var, ["subject_id_quali", "source_quali", "death_unit", "date_death", "ALSFRS_Total_final"], [])
     d2, target, copy, copy2, copy3, copy4, dummiesLst, ratio, chi2, anova, origin =\
-        d.ready(deleteCols=True, dropna=True, thresholdDrop=70, createDummies=True, normalize=False)
+        d.ready(deleteCols=True, dropna=True, thresholdDrop=60, createDummies=True, normalize=True)
     print(d2)
+    print(d2.columns)
     print(d.dummiesList)
     print(dummiesLst)
+    # d.write(data=d2, filename='test_patient')

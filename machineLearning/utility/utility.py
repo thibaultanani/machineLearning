@@ -1,21 +1,16 @@
 import machineLearning.tab.tab as tab
 
-from sklearn.linear_model import LogisticRegression, SGDClassifier, RidgeClassifier
-from sklearn.svm import SVC
+from sklearn.linear_model import LogisticRegression, RidgeClassifier
+from sklearn.svm import LinearSVC
 from sklearn.neighbors import KNeighborsClassifier
-from sklearn.ensemble import RandomForestClassifier, GradientBoostingClassifier, ExtraTreesClassifier, \
-    AdaBoostClassifier, BaggingClassifier
+from sklearn.ensemble import RandomForestClassifier, ExtraTreesClassifier
 from sklearn.tree import DecisionTreeClassifier
-from sklearn.discriminant_analysis import LinearDiscriminantAnalysis, QuadraticDiscriminantAnalysis
+from sklearn.discriminant_analysis import LinearDiscriminantAnalysis
 from sklearn.naive_bayes import GaussianNB
 from sklearn.metrics import confusion_matrix
 from sklearn import model_selection
 from sklearn.metrics import precision_recall_fscore_support as s
-from sklearn.metrics import accuracy_score
-from sklearn.impute import SimpleImputer
-from sklearn.preprocessing import StandardScaler, MinMaxScaler
-from sklearn.pipeline import Pipeline
-from sklearn.feature_selection import SelectPercentile, chi2, f_classif
+from sklearn.preprocessing import MinMaxScaler
 from imblearn.over_sampling import SMOTE
 
 import pandas as pd
@@ -215,47 +210,16 @@ def fitness(self, pop, mode, data, dummiesList, createDummies, normalize, metric
 
     matrix_length = len(np.unique(self.data[self.target]))
 
-    if mode == 'sgd':
-        model = SGDClassifier(class_weight='balanced', loss='modified_huber', random_state=1)
-    elif mode == 'svm':
-        model = SVC(kernel='linear', class_weight='balanced', probability=True)
-    elif mode == 'rbf':
-        model = SVC(kernel='rbf', class_weight='balanced', probability=True)
-    elif mode == 'pol':
-        model = SVC(kernel='poly', class_weight='balanced', probability=True)
+    if mode == 'svm':
+        model = LinearSVC(class_weight='balanced', random_state=1)
     elif mode == 'rdc':
-        # model = RandomForestClassifier(n_estimators=16, bootstrap=False, class_weight='balanced', random_state=1)
-        # model = RandomForestClassifier(bootstrap=False, class_weight=None, criterion='entropy',
-        #                                max_depth=12, max_features=0.2, max_leaf_nodes=None,
-        #                                min_impurity_split=1e-07, min_samples_leaf=1, min_samples_split=20,
-        #                                min_weight_fraction_leaf=0.0, n_estimators=512, n_jobs=-1, oob_score=False,
-        #                                random_state=3, verbose=False, warm_start=False)
-        simpleimputer = SimpleImputer(add_indicator=False, copy=True, fill_value=None, missing_values=np.nan,
-                                      strategy="median", verbose=0)
-        standardscaler = StandardScaler(copy=True, with_mean=True, with_std=True)
-        randomforestclassifier = RandomForestClassifier(bootstrap=False, class_weight=None, criterion="gini",
-                                                        max_depth=None, max_features=0.21975649694764154,
-                                                        max_leaf_nodes=None, min_impurity_decrease=0,
-                                                        min_impurity_split=None, min_samples_leaf=2,
-                                                        min_samples_split=4, min_weight_fraction_leaf=0.0,
-                                                        n_estimators=300, n_jobs=1, oob_score=False, random_state=1,
-                                                        verbose=0, warm_start=False)
-        model = Pipeline(memory=None, steps=[('simpleimputer', simpleimputer), ('standardscaler', standardscaler),
-                                             ('randomforestclassifier', randomforestclassifier)])
+        model = RandomForestClassifier(n_estimators=10, bootstrap=False, class_weight='balanced', random_state=1)
     elif mode == 'dtc':
         model = DecisionTreeClassifier(class_weight='balanced', random_state=1)
-    elif mode == 'gdc':
-        model = GradientBoostingClassifier(random_state=1)
     elif mode == 'etc':
         model = ExtraTreesClassifier(class_weight='balanced', random_state=1)
-    elif mode == 'adc':
-        model = AdaBoostClassifier(random_state=1)
-    elif mode == 'bac':
-        model = BaggingClassifier(random_state=1)
     elif mode == 'lda':
         model = LinearDiscriminantAnalysis()
-    elif mode == 'qda':
-        model = QuadraticDiscriminantAnalysis()
     elif mode == 'gnb':
         model = GaussianNB()
     elif mode == 'rrc':
@@ -295,7 +259,7 @@ def fitness(self, pop, mode, data, dummiesList, createDummies, normalize, metric
             for train_index, test_index in k.split(X, y):  # Split in X
                 X_train, X_test = X[train_index], X[test_index]
                 y_train, y_test = y[train_index], y[test_index]
-                if mode == ('knn' or 'dct' or 'gbc' or 'lda' or 'qda' or 'adc' or 'bac'):
+                if mode == ('knn' or 'gnb' or 'lda'):
                     if mode == 'knn':
                         model = KNeighborsClassifier(n_neighbors=int(len(X_train) ** (1 / 2)))
                     sm = SMOTE(sampling_strategy='auto')
@@ -324,11 +288,11 @@ def fitness(self, pop, mode, data, dummiesList, createDummies, normalize, metric
         scoresF.append(fscore)
         inds.append(ind)
         colsLst.append(cols)
-        if metric == 'accuracy' or 'exactitude':
+        if metric == 'accuracy' or metric == 'exactitude':
             scores.append(accuracy)
-        elif metric == 'recall' or 'rappel':
+        elif metric == 'recall' or metric == 'rappel':
             scores.append(recall)
-        elif metric == 'precision' or 'précision':
+        elif metric == 'precision' or metric == 'précision':
             scores.append(precision)
         elif metric == 'fscore':
             scores.append(fscore)
@@ -342,47 +306,16 @@ def fitness2(self, mode, solution, data, dummiesList, createDummies, normalize):
 
     matrix_length = len(np.unique(self.data[self.target]))
 
-    if mode == 'sgd':
-        model = SGDClassifier(class_weight='balanced', loss='modified_huber', random_state=1)
-    elif mode == 'svm':
-        model = SVC(kernel='linear', class_weight='balanced', probability=True)
-    elif mode == 'rbf':
-        model = SVC(kernel='rbf', class_weight='balanced', probability=True)
-    elif mode == 'pol':
-        model = SVC(kernel='poly', class_weight='balanced', probability=True)
+    if mode == 'svm':
+        model = LinearSVC(class_weight='balanced', random_state=1)
     elif mode == 'rdc':
-        # model = RandomForestClassifier(n_estimators=16, bootstrap=False, class_weight='balanced', random_state=1)
-        # model = RandomForestClassifier(bootstrap=False, class_weight=None, criterion='entropy',
-        #                                max_depth=12, max_features=0.2, max_leaf_nodes=None,
-        #                                min_impurity_split=1e-07, min_samples_leaf=1, min_samples_split=20,
-        #                                min_weight_fraction_leaf=0.0, n_estimators=512, n_jobs=-1, oob_score=False,
-        #                                random_state=3, verbose=False, warm_start=False)
-        simpleimputer = SimpleImputer(add_indicator=False, copy=True, fill_value=None, missing_values=np.nan,
-                                      strategy="median", verbose=0)
-        standardscaler = StandardScaler(copy=True, with_mean=True, with_std=True)
-        randomforestclassifier = RandomForestClassifier(bootstrap=False, class_weight=None, criterion="gini",
-                                                        max_depth=None, max_features=0.21975649694764154,
-                                                        max_leaf_nodes=None, min_impurity_decrease=0,
-                                                        min_impurity_split=None, min_samples_leaf=2,
-                                                        min_samples_split=4, min_weight_fraction_leaf=0.0,
-                                                        n_estimators=300, n_jobs=1, oob_score=False, random_state=1,
-                                                        verbose=0, warm_start=False)
-        model = Pipeline(memory=None, steps=[('simpleimputer', simpleimputer), ('standardscaler', standardscaler),
-                                             ('randomforestclassifier', randomforestclassifier)])
+        model = RandomForestClassifier(n_estimators=10, bootstrap=False, class_weight='balanced', random_state=1)
     elif mode == 'dtc':
         model = DecisionTreeClassifier(class_weight='balanced', random_state=1)
-    elif mode == 'gdc':
-        model = GradientBoostingClassifier(random_state=1)
     elif mode == 'etc':
         model = ExtraTreesClassifier(class_weight='balanced', random_state=1)
-    elif mode == 'adc':
-        model = AdaBoostClassifier(random_state=1)
-    elif mode == 'bac':
-        model = BaggingClassifier(random_state=1)
     elif mode == 'lda':
         model = LinearDiscriminantAnalysis()
-    elif mode == 'qda':
-        model = QuadraticDiscriminantAnalysis()
     elif mode == 'gnb':
         model = GaussianNB()
     elif mode == 'rrc':
@@ -421,7 +354,7 @@ def fitness2(self, mode, solution, data, dummiesList, createDummies, normalize):
         for train_index, test_index in k.split(X, y):  # Split in X
             X_train, X_test = X[train_index], X[test_index]
             y_train, y_test = y[train_index], y[test_index]
-            if mode == ('knn' or 'dct' or 'gbc' or 'lda' or 'qda' or 'adc' or 'bac'):
+            if mode == ('knn' or 'lda' or 'gnb'):
                 if mode == 'knn':
                     model = KNeighborsClassifier(n_neighbors=int(len(X_train) ** (1 / 2)))
                 sm = SMOTE(sampling_strategy='auto')
@@ -487,10 +420,10 @@ def getList(bestModel, bestScore, bestScoreA, bestScoreP, bestScoreR, bestScoreF
     return list1, flist
 
 
-def res(heuristic, x, y, z, besties, names, iters, metric, path, n_gen, self):
+def res(heuristic, x, y, z, besties, names, iters, times, names2, metric, path, n_gen, self):
     folderName = "Ulti"
     createDirectory(path, folderName)
-    cmap = ['dodgerblue', 'red', 'springgreen', 'yellow', 'orange', 'deeppink', 'darkviolet', 'blue', 'dimgray',
+    cmap = ['dodgerblue', 'red', 'springgreen', 'gold', 'orange', 'deeppink', 'darkviolet', 'blue', 'dimgray',
             'salmon', 'green', 'cyan', 'indigo', 'crimson', 'chocolate', 'black']
     fig, ax = plt.subplots()
     i = 0
@@ -509,6 +442,23 @@ def res(heuristic, x, y, z, besties, names, iters, metric, path, n_gen, self):
     fig.savefig(os.path.abspath(b), bbox_inches="tight")
     plt.close(fig)
 
+    fig2, ax2 = plt.subplots()
+    i = 0
+    for val in times:
+        ax2.plot(list(range(0, n_gen + 1)), val, color=cmap[i])
+        i = i + 1
+    ax2.set_title("Evolution du temps par géénration"
+                 + "\n" + heuristic)
+    ax2.set_xlabel("génération")
+    ax2.set_ylabel("Temps en seconde")
+    ax2.grid()
+    ax2.legend(labels=names2,
+               loc='center left', bbox_to_anchor=(1.04, 0.5), borderaxespad=0)
+    a = os.path.join(os.path.join(path, folderName), 'plotTps_' + '.png')
+    b = os.path.join(os.getcwd(), a)
+    fig2.savefig(os.path.abspath(b), bbox_inches="tight")
+    plt.close(fig2)
+
     for i in range(len(x)):
         z.append(x[i][1:])
     z = np.reshape(z, (-1, len(z[0][0])))
@@ -526,11 +476,11 @@ def res(heuristic, x, y, z, besties, names, iters, metric, path, n_gen, self):
     # print(x[0][-1][9])
     maxi_score = 0
     maxi_col = 0
-    if metric == 'accuracy' or 'exactitude':
+    if metric == 'accuracy' or metric == 'exactitude':
         index_ = 6
-    elif metric == 'recall' or 'rappel':
+    elif metric == 'recall' or metric == 'rappel':
         index_ = 9
-    elif metric == 'precision' or 'précision':
+    elif metric == 'precision' or metric == 'précision':
         index_ = 7
     elif metric == 'fscore':
         index_ = 11

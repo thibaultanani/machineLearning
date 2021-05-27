@@ -33,7 +33,7 @@ class Simulated:
         self.data_name = data_name
 
     def write_res(self, folderName, mode, temperature, alpha, final_temperature, y1, y2, yX, colMax, bestScore,
-                  bestScoreA, bestScoreP, bestScoreR, bestScoreF, bestModel, debut):
+                  bestScoreA, bestScoreP, bestScoreR, bestScoreF, bestModel, debut, out, yTps):
         a = os.path.join(os.path.join(self.path2, folderName), 'resultat.txt')
         f = open(a, "w")
         string = "mode: " + mode + os.linesep + "température initiale: " + str(temperature) + os.linesep + "alpha: " +\
@@ -45,14 +45,19 @@ class Simulated:
                  str(bestScoreF) + os.linesep + "meilleur model: " + str(bestModel) + os.linesep + "temps total: " +\
                  str(timedelta(seconds=(time.time() - debut))) + os.linesep + "mémoire: " +\
                  str(psutil.virtual_memory()) + os.linesep + "Insertions dans le tableau: " + str(self.tab_insert) +\
-                 os.linesep + "Valeur présente dans le tableau: " + str(self.tab_find) + os.linesep
+                 os.linesep + "Valeur présente dans le tableau: " + str(self.tab_find) + os.linesep +\
+                 "temps total: " + str(yTps) + os.linesep
         f.write(string)
         f.close()
+        a = os.path.join(os.path.join(self.path2, folderName), 'print.txt')
+        f = open(a, "w")
+        f.write(out)
 
     def optimization(self, part, temperature, alpha, final_temperature, data,
-                     dummiesList, createDummies, normalize, metric, x, y, besties, names, iters):
+                     dummiesList, createDummies, normalize, metric, x, y, besties, names, iters, times, names2):
 
         debut = time.time()
+        print_out = ""
 
         for mode in part:
 
@@ -61,6 +66,7 @@ class Simulated:
             utility.createDirectory(path=self.path2, folderName=folderName)
 
             iteration = 0
+            tps_debut = 0
 
             cols = self.data.drop([self.target], axis=1).columns
 
@@ -77,6 +83,8 @@ class Simulated:
 
             x2 = []
             yX = []
+
+            yTps = []
 
             solution = np.random.choice(a=[False, True], size=self.copy.columns.size - 1)
 
@@ -111,13 +119,13 @@ class Simulated:
                 self.tab_data, self.tab_vals, self.tab_insert, self.tab_find = \
                     obj.tab_data, obj.tab_vals, obj.tab_insert, obj.tab_find
 
-                if metric == 'accuracy' or 'exactitude':
+                if metric == 'accuracy' or metric == 'exactitude':
                     res_sol = accuracy
                     res_nei = accuracy_n
-                elif metric == 'recall' or 'rappel':
+                elif metric == 'recall' or metric == 'rappel':
                     res_sol = recall
                     res_nei = recall_n
-                elif metric == 'precision' or 'précision':
+                elif metric == 'precision' or metric == 'précision':
                     res_sol = precision
                     res_nei = precision_n
                 elif metric == 'fscore':
@@ -147,9 +155,22 @@ class Simulated:
                         solution = neighbor
                         res_sol = res_nei
 
-                print("mode: ", mode, " valeur: ", best_res, " iteration: ", iteration,
-                      " temps exe: ", str(timedelta(seconds=(time.time() - instant))),
-                      " temps total: ", str(timedelta(seconds=(time.time() - debut))))
+                tps_instant = timedelta(seconds=(time.time() - instant))
+                tps_debut = timedelta(seconds=(time.time() - debut))
+                yTps.append(tps_debut.total_seconds())
+
+                print_out = \
+                    print_out + "mode: " + mode +\
+                    " valeur: " + str(best_res) +\
+                    " itération: " + str(iteration) +\
+                    " temps exe: " + str(tps_instant) +\
+                    " temps total: " + str(tps_debut) + "\n"
+
+                print("mode: " + mode +
+                      " valeur: " + str(best_res) +
+                      " itération: " + str(iteration) +
+                      " temps exe: " + str(tps_instant) +
+                      " temps total: " + str(tps_debut))
 
                 x1.append(iteration)
                 y1.append(best_res)
@@ -173,7 +194,8 @@ class Simulated:
                 ax.set_xlabel("génération")
                 ax.set_ylabel(metric)
                 ax.grid()
-                ax.legend(labels=["Le meilleur", "Valeur actuelle"],
+                ax.legend(labels=["Le meilleur: " + "{:.3f}".format(best_res),
+                                  "Valeur actuelle: " + "{:.3f}".format(res_sol)],
                           loc='center left', bbox_to_anchor=(1.04, 0.5), borderaxespad=0)
                 a = os.path.join(os.path.join(self.path2, folderName), 'plot_' + str(begin_temperature) + '.png')
                 b = os.path.join(os.getcwd(), a)
@@ -197,17 +219,32 @@ class Simulated:
                 fig2.savefig(os.path.abspath(b), bbox_inches="tight")
                 plt.close(fig2)
 
+                fig3, ax3 = plt.subplots()
+                ax3.plot(x1, yTps)
+                ax3.set_title("Evolution du temps d'exécution par génération (" + folderName + ")"
+                              + "\nRecuit suimulé")
+                ax3.set_xlabel("génération")
+                ax3.set_ylabel("Temps en seconde")
+                ax3.grid()
+                ax3.legend(labels=["Temps total: " + "{:.0f}".format(tps_debut.total_seconds())],
+                           loc='center left', bbox_to_anchor=(1.04, 0.5), borderaxespad=0)
+                a = os.path.join(os.path.join(self.path2, folderName), 'plotTps_' + str(begin_temperature) + '.png')
+                b = os.path.join(os.getcwd(), a)
+                fig3.savefig(os.path.abspath(b), bbox_inches="tight")
+                plt.close(fig3)
+
                 temperature = temperature - alpha
                 iteration = iteration + 1
+
+                if (iteration % 10) == 0:
+                    print("Sauvegarde du tableau actuel dans les fichiers, itération:", iteration)
+                    tab.dump(self.tab_data, self.tab_vals, 'tab_' + self.data_name + '_' + mode)
 
             self.write_res(folderName=folderName, mode=mode, temperature=begin_temperature, alpha=alpha,
                            final_temperature=final_temperature, y1=y1, y2=y2, yX=yX, colMax=best_cols,
                            bestScore=best_res, bestScoreA=best_accuracy, bestScoreP=best_precision,
-                           bestScoreR=best_recall, bestScoreF=best_fscore, bestModel=best_model, debut=debut)
-
-            if (iteration % 5) == 0:
-                print("Sauvegarde du tableau actuel dans les fichiers, itération:", iteration)
-                tab.dump(self.tab_data, self.tab_vals, 'tab_' + self.data_name + '_' + mode)
+                           bestScoreR=best_recall, bestScoreF=best_fscore, bestModel=best_model, debut=debut,
+                           out=print_out, yTps=yTps)
 
             arg1, arg2 = utility.getList(bestModel=best_model, bestScore=best_res, bestScoreA=best_accuracy,
                                          bestScoreP=best_precision, bestScoreR=best_recall, bestScoreF=best_fscore,
@@ -215,9 +252,11 @@ class Simulated:
 
             x.put(list(arg1))
             y.put(list(arg2))
-            besties.put(y2)
+            besties.put(y1)
             names.put(folderName + ": " + "{:.3f}".format(best_res))
             iters.put(iteration)
+            times.put(yTps)
+            names2.put(folderName + ": " + "{:.0f}".format(tps_debut.total_seconds()))
 
             tab.dump(self.tab_data, self.tab_vals, 'tab_' + self.data_name + '_' + mode)
 
@@ -234,6 +273,8 @@ class Simulated:
         besties = queue.Queue()
         names = queue.Queue()
         iters = queue.Queue()
+        times = queue.Queue()
+        names2 = queue.Queue()
 
         if isinstance(self.listModels, str):
             if self.listModels == 'all':
@@ -249,7 +290,8 @@ class Simulated:
         for part in mods:
             thread = threading.Thread(target=self.optimization,
                                       args=(part, temperature, alpha, final_temperature, data, dummiesList,
-                                            createDummies, normalize, metric, x, y, besties, names, iters))
+                                            createDummies, normalize, metric, x, y, besties,
+                                            names, iters, times, names2))
             threads.append(thread)
             thread.start()
 
@@ -258,7 +300,8 @@ class Simulated:
 
         return utility.res(heuristic="Recuit simulé", x=list(x.queue), y=list(y.queue), z=list(z.queue),
                            besties=list(besties.queue), names=list(names.queue), iters=list(iters.queue),
-                           metric=metric, path=self.path2, n_gen=temperature-1, self=self)
+                           times=list(times.queue), names2=list(names2.queue), metric=metric, path=self.path2,
+                           n_gen=temperature-1, self=self)
 
 
 if __name__ == '__main__':

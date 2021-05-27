@@ -4,13 +4,12 @@ import machineLearning.utility.utility as utility
 
 import threading
 import queue
-from sklearn.linear_model import LogisticRegression, SGDClassifier, RidgeClassifier
-from sklearn.svm import SVC
+from sklearn.linear_model import LogisticRegression, RidgeClassifier
+from sklearn.svm import LinearSVC
 from sklearn.neighbors import KNeighborsClassifier
-from sklearn.ensemble import RandomForestClassifier, GradientBoostingClassifier, ExtraTreesClassifier, \
-    AdaBoostClassifier, BaggingClassifier
+from sklearn.ensemble import RandomForestClassifier, ExtraTreesClassifier
 from sklearn.tree import DecisionTreeClassifier
-from sklearn.discriminant_analysis import LinearDiscriminantAnalysis, QuadraticDiscriminantAnalysis
+from sklearn.discriminant_analysis import LinearDiscriminantAnalysis
 from sklearn.naive_bayes import GaussianNB
 import numpy as np
 import matplotlib.pyplot as plt
@@ -86,30 +85,16 @@ class Swarm:
 
         matrix_length = len(np.unique(self.data[self.target]))
 
-        if self.mode == 'sgd':
-            model = SGDClassifier(class_weight='balanced', loss='modified_huber', random_state=1)
-        elif self.mode == 'svr':
-            model = SVC(kernel='linear', class_weight='balanced', probability=True)
-        elif self.mode == 'rdf':
-            model = SVC(kernel='rbf', class_weight='balanced', probability=True)
-        elif self.mode == 'pol':
-            model = SVC(kernel='poly', class_weight='balanced', probability=True)
+        if self.mode == 'svm':
+            model = LinearSVC(class_weight='balanced', random_state=1)
         elif self.mode == 'rdc':
-            model = RandomForestClassifier(n_estimators=10, class_weight='balanced', random_state=1)
+            model = RandomForestClassifier(n_estimators=10, bootstrap=False, class_weight='balanced', random_state=1)
         elif self.mode == 'dtc':
             model = DecisionTreeClassifier(class_weight='balanced', random_state=1)
-        elif self.mode == 'gdc':
-            model = GradientBoostingClassifier(random_state=1)
         elif self.mode == 'etc':
             model = ExtraTreesClassifier(class_weight='balanced', random_state=1)
-        elif self.mode == 'adc':
-            model = AdaBoostClassifier(random_state=1)
-        elif self.mode == 'bac':
-            model = BaggingClassifier(random_state=1)
         elif self.mode == 'lda':
             model = LinearDiscriminantAnalysis()
-        elif self.mode == 'qda':
-            model = QuadraticDiscriminantAnalysis()
         elif self.mode == 'gnb':
             model = GaussianNB()
         elif self.mode == 'rrc':
@@ -172,11 +157,11 @@ class Swarm:
                                                    self.tab_vals)
             self.tab_insert = self.tab_insert + 1
 
-        if metric == 'accuracy' or 'exactitude':
+        if metric == 'accuracy' or metric == 'exactitude':
             score = accuracy
-        elif metric == 'recall' or 'rappel':
+        elif metric == 'recall' or metric == 'rappel':
             score = recall
-        elif metric == 'precision' or 'précision':
+        elif metric == 'precision' or metric == 'précision':
             score = precision
         elif metric == 'fscore':
             score = fscore
@@ -249,7 +234,8 @@ class PSO:
         self.data_name = data_name
 
     def write_res(self, folderName, mode, n_pop, n_gen, w, c1, c2, y1, yX, colMax,
-                  bestScore, bestScoreA, bestScoreP, bestScoreR, bestScoreF, bestModel, debut, insert, find):
+                  bestScore, bestScoreA, bestScoreP, bestScoreR, bestScoreF,
+                  bestModel, debut, insert, find, out, yTps):
         a = os.path.join(os.path.join(self.path2, folderName), 'resultat.txt')
         f = open(a, "w")
         string = "mode: " + mode + os.linesep + "population: " + str(n_pop) + os.linesep + "générations: " +\
@@ -261,14 +247,19 @@ class PSO:
                  str(bestScoreF) + os.linesep + "meilleur model: " + str(bestModel) + os.linesep + "temps total: " +\
                  str(timedelta(seconds=(time.time() - debut))) + os.linesep + "mémoire: " +\
                  str(psutil.virtual_memory()) + os.linesep + "Insertions dans le tableau: " + str(insert) +\
-                 os.linesep + "Valeur présente dans le tableau: " + str(find) + os.linesep
+                 os.linesep + "Valeur présente dans le tableau: " + str(find) +\
+                 os.linesep + "temps total: " + str(yTps) + os.linesep
         f.write(string)
         f.close()
+        a = os.path.join(os.path.join(self.path2, folderName), 'print.txt')
+        f = open(a, "w")
+        f.write(out)
 
     def optimization(self, part, n_pop, n_gen, w, c1, c2, data, dummiesList, createDummies, normalize, metric, x, y,
-                     besties, names, iters):
+                     besties, names, iters, times, names2):
 
         debut = time.time()
+        print_out = ""
 
         for mode in part:
 
@@ -296,7 +287,10 @@ class PSO:
             x2 = []
             yX = []
 
+            yTps = []
+
             iteration = 0
+            tps_debut = 0
             while iteration < n_gen:
                 instant = time.time()
 
@@ -305,9 +299,22 @@ class PSO:
 
                 search_space.move_particles()
 
-                print("mode: ", mode, " valeur: ", search_space.gbest_value, " itération: ", iteration,
-                      " temps exe: ", str(timedelta(seconds=(time.time() - instant))),
-                      " temps total: ", str(timedelta(seconds=(time.time() - debut))))
+                tps_instant = timedelta(seconds=(time.time() - instant))
+                tps_debut = timedelta(seconds=(time.time() - debut))
+                yTps.append(tps_debut.total_seconds())
+
+                print_out = \
+                    print_out + "mode: " + mode +\
+                    " valeur: " + str(search_space.gbest_value) +\
+                    " itération: " + str(iteration) +\
+                    " temps exe: " + str(tps_instant) +\
+                    " temps total: " + str(tps_debut) + "\n"
+
+                print("mode: " + mode +
+                      " valeur: " + str(search_space.gbest_value) +
+                      " itération: " + str(iteration) +
+                      " temps exe: " + str(tps_instant) +
+                      " temps total: " + str(tps_debut))
 
                 x1.append(iteration)
                 y1.append(search_space.gbest_value)
@@ -330,9 +337,9 @@ class PSO:
                 ax.set_xlabel("génération")
                 ax.set_ylabel(metric)
                 ax.grid()
-                ax.legend(labels=["Le meilleur"],
+                ax.legend(labels=["Le meilleur: " + "{:.3f}".format(search_space.gbest_value)],
                           loc='center left', bbox_to_anchor=(1.04, 0.5), borderaxespad=0)
-                a = os.path.join(os.path.join(self.path2, folderName), 'plot_' + str(1) + '.png')
+                a = os.path.join(os.path.join(self.path2, folderName), 'plot_' + str(n_gen) + '.png')
                 b = os.path.join(os.getcwd(), a)
                 # if iteration == n_gen - 1:
                 fig.savefig(os.path.abspath(b), bbox_inches="tight")
@@ -348,11 +355,25 @@ class PSO:
                 ax2.set_ylabel(metric)
                 ax2.grid()
                 ax2.legend(labels=unique, loc='center left', bbox_to_anchor=(1.04, 0.5), borderaxespad=0)
-                a = os.path.join(os.path.join(self.path2, folderName), 'plotb_' + str(1) + '.png')
+                a = os.path.join(os.path.join(self.path2, folderName), 'plotb_' + str(n_gen) + '.png')
                 b = os.path.join(os.getcwd(), a)
                 # if iteration == n_gen-1:
                 fig2.savefig(os.path.abspath(b), bbox_inches="tight")
                 plt.close(fig2)
+
+                fig3, ax3 = plt.subplots()
+                ax3.plot(x1, yTps)
+                ax3.set_title("Evolution du temps d'exécution par génération (" + folderName + ")"
+                              + "\nOptimisation par essaim de particule")
+                ax3.set_xlabel("génération")
+                ax3.set_ylabel("Temps en seconde")
+                ax3.grid()
+                ax3.legend(labels=["Temps total: " + "{:.0f}".format(tps_debut.total_seconds())],
+                           loc='center left', bbox_to_anchor=(1.04, 0.5), borderaxespad=0)
+                a = os.path.join(os.path.join(self.path2, folderName), 'plotTps_' + str(n_gen) + '.png')
+                b = os.path.join(os.getcwd(), a)
+                fig3.savefig(os.path.abspath(b), bbox_inches="tight")
+                plt.close(fig3)
 
                 iteration = iteration + 1
 
@@ -361,9 +382,9 @@ class PSO:
                                bestScoreA=search_space.gbest_accuracy, bestScoreP=search_space.gbest_precision,
                                bestScoreR=search_space.gbest_recall, bestScoreF=search_space.gbest_fscore,
                                bestModel=search_space.gbest_matrix, debut=debut,
-                               insert=search_space.tab_insert, find=search_space.tab_find)
+                               insert=search_space.tab_insert, find=search_space.tab_find, out=print_out, yTps=yTps)
 
-                if (iteration % 5) == 0:
+                if (iteration % 10) == 0:
                     print("Sauvegarde du tableau actuel dans les fichiers, itération:", iteration)
                     tab.dump(search_space.tab_data, search_space.tab_vals, 'tab_' + self.data_name + '_' + mode)
 
@@ -378,6 +399,8 @@ class PSO:
             besties.put(y1)
             names.put(folderName + ": " + "{:.3f}".format(search_space.gbest_value))
             iters.put(iteration)
+            times.put(yTps)
+            names2.put(folderName + ": " + "{:.0f}".format(tps_debut.total_seconds()))
 
             tab.dump(search_space.tab_data, search_space.tab_vals, 'tab_' + self.data_name + '_' + mode)
 
@@ -394,6 +417,8 @@ class PSO:
         besties = queue.Queue()
         names = queue.Queue()
         iters = queue.Queue()
+        times = queue.Queue()
+        names2 = queue.Queue()
 
         if isinstance(self.listModels, str):
             if self.listModels == 'all':
@@ -409,7 +434,8 @@ class PSO:
         for part in mods:
             thread = threading.Thread(target=self.optimization,
                                       args=(part, n_pop, n_gen, w, c1, c2, data, dummiesList,
-                                            createDummies, normalize, metric, x, y, besties, names, iters))
+                                            createDummies, normalize, metric, x, y, besties,
+                                            names, iters, times, names2))
             threads.append(thread)
             thread.start()
 
@@ -418,7 +444,8 @@ class PSO:
 
         return utility.res(heuristic="Optimisation par essaim de particules", x=list(x.queue), y=list(y.queue),
                            z=list(z.queue), besties=list(besties.queue), names=list(names.queue),
-                           iters=list(iters.queue), metric=metric, path=self.path2, n_gen=n_gen-1, self=self)
+                           times=list(times.queue), names2=list(names2.queue), iters=list(iters.queue), metric=metric,
+                           path=self.path2, n_gen=n_gen-1, self=self)
 
 
 if __name__ == '__main__':

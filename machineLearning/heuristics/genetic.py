@@ -74,7 +74,7 @@ class Genetic:
 
     def write_res(self, folderName, mode, n_pop, n_gen, n_mut, y1, y2, yX, colMax, bestScorePro, bestAPro, bestPPro,
                   bestRPro, bestFPro, bestModelPro, bestScore, bestScoreA, bestScoreP, bestScoreR, bestScoreF,
-                  bestModel, debut):
+                  bestModel, debut, out, yTps):
         a = os.path.join(os.path.join(self.path2, folderName), 'resultat.txt')
         f = open(a, "w")
         string = "mode: " + mode + os.linesep + "population: " + str(n_pop) + os.linesep +\
@@ -91,9 +91,12 @@ class Genetic:
                  str(timedelta(seconds=(time.time() - debut))) + os.linesep + "mémoire: " +\
                  str(psutil.virtual_memory()) + os.linesep + "Insertions dans le tableau: " +\
                  str(self.tab_insert) + os.linesep + "Valeur présente dans le tableau: " +\
-                 str(self.tab_find) + os.linesep
+                 str(self.tab_find) + os.linesep + "temps total: " + str(yTps) + os.linesep
         f.write(string)
         f.close()
+        a = os.path.join(os.path.join(self.path2, folderName), 'print.txt')
+        f = open(a, "w")
+        f.write(out)
 
     def selection(self, pop, i):
         try:
@@ -137,9 +140,10 @@ class Genetic:
         return np.array(newpop), scores, models, cols, scoresA, scoresP, scoresR, scoresF
 
     def natural_selection(self, part, n_pop, n_gen, n_mut, data, dummiesList,
-                          createDummies, normalize, metric, x, y, besties, names, iters):
+                          createDummies, normalize, metric, x, y, besties, names, iters, times, names2):
 
         debut = time.time()
+        print_out = ""
 
         for mode in part:
 
@@ -154,6 +158,8 @@ class Genetic:
 
             x2 = []
             yX = []
+
+            yTps = []
 
             scoreMax = 0
             modelMax = 0
@@ -228,10 +234,17 @@ class Genetic:
             x2.append(tmp2[:])
             yX.append(tmp[:])
 
-            print(mode + " génération: 0" +
-                  " moyenne: " + str(np.mean(heapq.nlargest(int(n_pop/2), scores))) + " meilleur: " + str(bestScore) +
-                  " temps exe: " + str(timedelta(seconds=(time.time() - instant))) +
-                  " temps total: " + str(timedelta(seconds=(time.time() - debut))))
+            tps_debut = timedelta(seconds=(time.time() - debut))
+            yTps.append(tps_debut.total_seconds())
+
+            print_out = \
+                print_out + mode + " génération: 0" +\
+                " moyenne: " + str(np.mean(heapq.nlargest(int(n_pop/2), scores))) +\
+                " meilleur: " + str(bestScore) +\
+                " temps exe: " + str(timedelta(seconds=(time.time() - instant))) +\
+                " temps total: " + str(tps_debut) + "\n"
+
+            print(print_out, end="")
 
             generation = 0
             for generation in range(n_gen):
@@ -316,11 +329,23 @@ class Genetic:
 
                 x1.append(generation + 1)
 
+                mean_scores = np.mean(heapq.nlargest(int(n_pop / 2), scores))
+                tps_instant = timedelta(seconds=(time.time() - instant))
+                tps_debut = timedelta(seconds=(time.time() - debut))
+                yTps.append(tps_debut.total_seconds())
+
+                print_out = \
+                    print_out + mode + " génération: " + str(generation + 1) +\
+                    " moyenne: " + str(mean_scores) +\
+                    " meilleur: " + str(bestScore) +\
+                    " temps exe: " + str(tps_instant) +\
+                    " temps total: " + str(tps_debut) + "\n"
+
                 print(mode + " génération: " + str(generation + 1) +
-                      " moyenne: " + str(np.mean(heapq.nlargest(int(n_pop / 2), scores))) +
+                      " moyenne: " + str(mean_scores) +
                       " meilleur: " + str(bestScore) +
-                      " temps exe: " + str(timedelta(seconds=(time.time() - instant))) +
-                      " temps total: " + str(timedelta(seconds=(time.time() - debut))))
+                      " temps exe: " + str(tps_instant) +
+                      " temps total: " + str(tps_debut))
 
                 # La moyenne sur les n_pop/2 premiers de la population
                 y1.append(np.mean(heapq.nlargest(int(n_pop/2), scores)))
@@ -333,7 +358,8 @@ class Genetic:
                 ax.set_xlabel("génération")
                 ax.set_ylabel(metric)
                 ax.grid()
-                ax.legend(labels=["moyenne des " + str(int(n_pop/2)) + " meilleurs", "Le meilleur"],
+                ax.legend(labels=["moyenne des " + str(int(n_pop/2)) + " meilleurs: " + "{:.3f}".format(mean_scores),
+                                  "Le meilleur: " + "{:.3f}".format(bestScore)],
                           loc='center left', bbox_to_anchor=(1.04, 0.5), borderaxespad=0)
                 a = os.path.join(os.path.join(self.path2, folderName), 'plot_' + str(n_gen) + '.png')
                 b = os.path.join(os.getcwd(), a)
@@ -366,6 +392,20 @@ class Genetic:
                 fig2.savefig(os.path.abspath(b), bbox_inches="tight")
                 plt.close(fig2)
 
+                fig3, ax3 = plt.subplots()
+                ax3.plot(x1, yTps)
+                ax3.set_title("Evolution du temps d'exécution par génération (" + folderName + ")"
+                              + "\nAlgorithme génétique")
+                ax3.set_xlabel("génération")
+                ax3.set_ylabel("Temps en seconde")
+                ax3.grid()
+                ax3.legend(labels=["Temps total: " + "{:.0f}".format(tps_debut.total_seconds())],
+                           loc='center left', bbox_to_anchor=(1.04, 0.5), borderaxespad=0)
+                a = os.path.join(os.path.join(self.path2, folderName), 'plotTps_' + str(n_gen) + '.png')
+                b = os.path.join(os.getcwd(), a)
+                fig3.savefig(os.path.abspath(b), bbox_inches="tight")
+                plt.close(fig3)
+
                 generation = generation + 1
 
                 if bestScore > scoreMax:
@@ -382,7 +422,8 @@ class Genetic:
                                yX=yX, colMax=colMax, bestScorePro=bestScorePro, bestAPro=bestAPro,
                                bestPPro=bestPPro, bestRPro=bestRPro, bestFPro=bestFPro, bestModelPro=bestModelPro,
                                bestScore=bestScore, bestScoreA=bestScoreA, bestScoreP=bestScoreP,
-                               bestScoreR=bestScoreR, bestScoreF=bestScoreF, bestModel=bestModel, debut=debut)
+                               bestScoreR=bestScoreR, bestScoreF=bestScoreF, bestModel=bestModel, debut=debut,
+                               out=print_out, yTps=yTps)
 
                 if (generation % 10) == 0:
                     print("Sauvegarde du tableau actuel dans les fichiers, génération:", generation)
@@ -397,6 +438,8 @@ class Genetic:
             besties.put(y2)
             names.put(folderName + ": " + "{:.3f}".format(scoreMax))
             iters.put(generation)
+            times.put(yTps)
+            names2.put(folderName + ": " + "{:.0f}".format(tps_debut.total_seconds()))
 
             tab.dump(self.tab_data, self.tab_vals, 'tab_' + self.data_name + '_' + mode)
 
@@ -413,6 +456,8 @@ class Genetic:
         besties = queue.Queue()
         names = queue.Queue()
         iters = queue.Queue()
+        times = queue.Queue()
+        names2 = queue.Queue()
 
         if isinstance(self.listModels, str):
             if self.listModels == 'all':
@@ -428,7 +473,8 @@ class Genetic:
         for part in mods:
             thread = threading.Thread(target=self.natural_selection,
                                       args=(part, n_pop, n_gen, n_mut, data, dummiesList,
-                                            createDummies, normalize, metric, x, y, besties, names, iters))
+                                            createDummies, normalize, metric, x, y, besties,
+                                            names, iters, times, names2))
             threads.append(thread)
             thread.start()
 
@@ -437,7 +483,8 @@ class Genetic:
 
         return utility.res(heuristic="Algorithme génétique", x=list(x.queue), y=list(y.queue), z=list(z.queue),
                            besties=list(besties.queue), names=list(names.queue), iters=list(iters.queue),
-                           metric=metric, path=self.path2, n_gen=n_gen, self=self)
+                           times=list(times.queue), names2=list(names2.queue), metric=metric, path=self.path2,
+                           n_gen=n_gen, self=self)
 
 
 if __name__ == '__main__':
