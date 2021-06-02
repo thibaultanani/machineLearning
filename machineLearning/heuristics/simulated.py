@@ -240,6 +240,8 @@ class Simulated:
                     print("Sauvegarde du tableau actuel dans les fichiers, itération:", iteration)
                     tab.dump(self.tab_data, self.tab_vals, 'tab_' + self.data_name + '_' + mode)
 
+            temperature = begin_temperature
+
             self.write_res(folderName=folderName, mode=mode, temperature=begin_temperature, alpha=alpha,
                            final_temperature=final_temperature, y1=y1, y2=y2, yX=yX, colMax=best_cols,
                            bestScore=best_res, bestScoreA=best_accuracy, bestScoreP=best_precision,
