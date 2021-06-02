@@ -88,7 +88,7 @@ class Swarm:
         if self.mode == 'svm':
             model = LinearSVC(class_weight='balanced', random_state=1)
         elif self.mode == 'rdc':
-            model = RandomForestClassifier(n_estimators=10, bootstrap=False, class_weight='balanced', random_state=1)
+            model = RandomForestClassifier(n_estimators=30, bootstrap=False, class_weight='balanced', random_state=1)
         elif self.mode == 'dtc':
             model = DecisionTreeClassifier(class_weight='balanced', random_state=1)
         elif self.mode == 'etc':
