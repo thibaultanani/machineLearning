@@ -63,6 +63,8 @@ class Simulated:
 
             folderName = mode.upper()
 
+            convergence = 0
+
             utility.createDirectory(path=self.path2, folderName=folderName)
 
             iteration = 0
@@ -144,6 +146,9 @@ class Simulated:
                     best_fscore = fscore
                     best_cols = cols
                     best_model = model
+                    convergence = 0
+                else:
+                    convergence = convergence + 1
 
                 cost = res_nei - res_sol
                 if cost >= 0:
@@ -170,7 +175,8 @@ class Simulated:
                       " valeur: " + str(best_res) +
                       " itération: " + str(iteration) +
                       " temps exe: " + str(tps_instant) +
-                      " temps total: " + str(tps_debut))
+                      " temps total: " + str(tps_debut) +
+                      " convergence: " + str(convergence))
 
                 x1.append(iteration)
                 y1.append(best_res)
@@ -239,6 +245,9 @@ class Simulated:
                 if (iteration % 10) == 0:
                     print("Sauvegarde du tableau actuel dans les fichiers, itération:", iteration)
                     tab.dump(self.tab_data, self.tab_vals, 'tab_' + self.data_name + '_' + mode)
+
+                if convergence == 300:
+                    break
 
             temperature = begin_temperature
 

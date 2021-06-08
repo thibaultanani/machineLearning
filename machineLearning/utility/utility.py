@@ -428,7 +428,7 @@ def res(heuristic, x, y, z, besties, names, iters, times, names2, metric, path, 
     fig, ax = plt.subplots()
     i = 0
     for val in besties:
-        ax.plot(list(range(0, n_gen + 1)), val, color=cmap[i])
+        ax.plot(list(range(0, len(val))), val, color=cmap[i])
         i = i + 1
     ax.set_title("Evolution du score par génération"
                  + "\n" + heuristic)
@@ -445,7 +445,7 @@ def res(heuristic, x, y, z, besties, names, iters, times, names2, metric, path, 
     fig2, ax2 = plt.subplots()
     i = 0
     for val in times:
-        ax2.plot(list(range(0, n_gen + 1)), val, color=cmap[i])
+        ax2.plot(list(range(0, len(val))), val, color=cmap[i])
         i = i + 1
     ax2.set_title("Evolution du temps par géénration"
                  + "\n" + heuristic)
