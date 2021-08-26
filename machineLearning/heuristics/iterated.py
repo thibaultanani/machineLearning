@@ -31,11 +31,12 @@ class Iterated:
         self.tab_find = 0
         self.data_name = data_name
 
-    def write_res(self, folderName, mode, n_gen, n_gen_vnd, kmax,  n_neighbors, y1, y2, yX, colMax, bestScore,
+    def write_res(self, folderName, name, mode, n_gen, n_gen_vnd, kmax,  n_neighbors, y1, y2, yX, colMax, bestScore,
                   bestScoreA, bestScoreP, bestScoreR, bestScoreF, bestModel, debut):
         a = os.path.join(os.path.join(self.path2, folderName), 'resultat.txt')
         f = open(a, "w")
-        string = "mode: " + mode + os.linesep + "générations: " + str(n_gen) + os.linesep + "générations vnd: " +\
+        string = "heuristique: Recherche locale itérée" + os.linesep + "mode: " + mode + os.linesep +\
+                 "name: " + name + os.linesep +  "générations: " + str(n_gen) + os.linesep + "générations vnd: " +\
                  str(n_gen_vnd) + os.linesep + "nombre de k: " + str(kmax) + os.linesep + "voisins: " +\
                  str(n_neighbors) + os.linesep + "mutations: " + "meilleur: " + str(y1) + os.linesep + "classes: " +\
                  str(yX) + os.linesep + "colonnes:" + str(colMax.tolist()) + os.linesep + "meilleur score: " +\
@@ -269,7 +270,7 @@ class Iterated:
                 fig, ax = plt.subplots()
                 ax.plot(x1, y1)
                 ax.set_title("Evolution du score par génération (" + folderName + ")"
-                             + "\nRecherche locale itérée")
+                             + "\nRecherche locale itérée\n" + self.data_name)
                 ax.set_xlabel("génération")
                 ax.set_ylabel(metric)
                 ax.grid()
@@ -286,7 +287,7 @@ class Iterated:
                 ax2.plot(x1, yX)
 
                 ax2.set_title("Evolution du score par génération pour chacune des classes (" + folderName + ")"
-                              + "\nRecherrche locale itérée")
+                              + "\nRecherrche locale itérée\n" + self.data_name)
                 ax2.set_xlabel("génération")
                 ax2.set_ylabel(metric)
                 ax2.grid()
@@ -299,7 +300,7 @@ class Iterated:
 
                 iteration = iteration + 1
 
-                self.write_res(folderName=folderName, mode=mode, n_gen=n_gen, n_gen_vnd=n_gen_vnd,
+                self.write_res(folderName=folderName, name=self.data_name, mode=mode, n_gen=n_gen, n_gen_vnd=n_gen_vnd,
                                kmax=kmax, n_neighbors=n_neighbors, y1=y1, y2=y2, yX=yX, colMax=best_cols,
                                bestScore=best_res, bestScoreA=best_accuracy, bestScoreP=best_precision,
                                bestScoreR=best_recall, bestScoreF=best_fscore, bestModel=best_model, debut=debut)
@@ -315,7 +316,7 @@ class Iterated:
             x.put(list(arg1))
             y.put(list(arg2))
             besties.put(y1)
-            names.put(folderName + ": " + "{:.3f}".format(best_res))
+            names.put(folderName + ": " + "{:.4f}".format(best_res))
             iters.put(iteration)
 
     def init(self, n_gen, n_gen_vnd, kmax, n_neighbors, data, dummiesList, createDummies, normalize, metric):

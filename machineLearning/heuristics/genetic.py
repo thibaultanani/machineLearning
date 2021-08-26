@@ -72,20 +72,22 @@ class Genetic:
                 ind[x] = not ind[x]
         return pop
 
-    def write_res(self, folderName, mode, n_pop, n_gen, n_mut, y1, y2, yX, colMax, bestScorePro, bestAPro, bestPPro,
-                  bestRPro, bestFPro, bestModelPro, bestScore, bestScoreA, bestScoreP, bestScoreR, bestScoreF,
+    def write_res(self, folderName, name, mode, n_pop, n_gen, n_mut, y1, y2, yX, colMax, bestScorePro, bestAPro,
+                  bestPPro, bestRPro, bestFPro, bestModelPro, bestScore, bestScoreA, bestScoreP, bestScoreR, bestScoreF,
                   bestModel, debut, out, yTps):
         a = os.path.join(os.path.join(self.path2, folderName), 'resultat.txt')
         f = open(a, "w")
-        string = "mode: " + mode + os.linesep + "population: " + str(n_pop) + os.linesep +\
+        string = "heuristique: Algorithme génétique" + os.linesep + "mode: " + mode + os.linesep +\
+                 "name: " + name + os.linesep + "population: " + str(n_pop) + os.linesep +\
                  "générations: " + str(n_gen) + os.linesep + "mutations: " + str(n_mut) + os.linesep +\
                  "moyenne: " + str(y1) + os.linesep + "meilleur: " + str(y2) + os.linesep +\
                  "classes: " + str(yX) + os.linesep + "colonnes:" + str(colMax.tolist()) + os.linesep +\
                  "scores:" + str(bestScorePro) + os.linesep + "exactitude:" + str(bestAPro) + os.linesep +\
                  "precision:" + str(bestPPro) + os.linesep + "rappel:" + str(bestRPro) + os.linesep +\
                  "fscore:" + str(bestFPro) + os.linesep + "model:" + str(bestModelPro) + os.linesep +\
-                 "meilleur score: " + str(bestScore) + os.linesep + "meilleure exactitude: " + str(bestScoreA) +\
-                 os.linesep + "meilleure precision: " + str(bestScoreP) + os.linesep + "meilleur rappel: " +\
+                 "meilleur score: " + str(bestScore) + os.linesep +\
+                 "meilleure exactitude: " + str(bestScoreA) + os.linesep +\
+                 "meilleure precision: " + str(bestScoreP) + os.linesep + "meilleur rappel: " +\
                  str(bestScoreR) + os.linesep + "meilleur fscore: " + str(bestScoreF) + os.linesep +\
                  "meilleur model: " + str(bestModel) + os.linesep + "temps total: " +\
                  str(timedelta(seconds=(time.time() - debut))) + os.linesep + "mémoire: " +\
@@ -354,12 +356,12 @@ class Genetic:
                 ax.plot(x1, y1)
                 ax.plot(x1, y2)
                 ax.set_title("Evolution du score par génération (" + folderName + ")"
-                             + "\nAlgorithme génétique")
+                             + "\nAlgorithme génétique\n" + self.data_name)
                 ax.set_xlabel("génération")
                 ax.set_ylabel(metric)
                 ax.grid()
-                ax.legend(labels=["moyenne des " + str(int(n_pop/2)) + " meilleurs: " + "{:.3f}".format(mean_scores),
-                                  "Le meilleur: " + "{:.3f}".format(bestScore)],
+                ax.legend(labels=["moyenne des " + str(int(n_pop/2)) + " meilleurs: " + "{:.4f}".format(mean_scores),
+                                  "Le meilleur: " + "{:.4f}".format(bestScore)],
                           loc='center left', bbox_to_anchor=(1.04, 0.5), borderaxespad=0)
                 a = os.path.join(os.path.join(self.path2, folderName), 'plot_' + str(n_gen) + '.png')
                 b = os.path.join(os.getcwd(), a)
@@ -381,7 +383,7 @@ class Genetic:
                 ax2.plot(x1, yX)
 
                 ax2.set_title("Evolution du rappel par génération pour chacune des classes (" + folderName + ")"
-                              + "\nAlgorithme génétique")
+                              + "\nAlgorithme génétique\n" + self.data_name)
                 ax2.set_xlabel("génération")
                 ax2.set_ylabel("rappel")
                 ax2.grid()
@@ -395,7 +397,7 @@ class Genetic:
                 fig3, ax3 = plt.subplots()
                 ax3.plot(x1, yTps)
                 ax3.set_title("Evolution du temps d'exécution par génération (" + folderName + ")"
-                              + "\nAlgorithme génétique")
+                              + "\nAlgorithme génétique\n" + self.data_name)
                 ax3.set_xlabel("génération")
                 ax3.set_ylabel("Temps en seconde")
                 ax3.grid()
@@ -418,12 +420,12 @@ class Genetic:
                     scoreRMax = bestScoreR
                     scoreFMax = bestScoreF
 
-                self.write_res(folderName=folderName, mode=mode, n_pop=n_pop, n_gen=n_gen, n_mut=n_mut, y1=y1, y2=y2,
-                               yX=yX, colMax=colMax, bestScorePro=bestScorePro, bestAPro=bestAPro,
-                               bestPPro=bestPPro, bestRPro=bestRPro, bestFPro=bestFPro, bestModelPro=bestModelPro,
-                               bestScore=bestScore, bestScoreA=bestScoreA, bestScoreP=bestScoreP,
-                               bestScoreR=bestScoreR, bestScoreF=bestScoreF, bestModel=bestModel, debut=debut,
-                               out=print_out, yTps=yTps)
+                self.write_res(folderName=folderName, name=self.data_name, mode=mode, n_pop=n_pop, n_gen=n_gen,
+                               n_mut=n_mut, y1=y1, y2=y2, yX=yX, colMax=colMax, bestScorePro=bestScorePro,
+                               bestAPro=bestAPro, bestPPro=bestPPro, bestRPro=bestRPro, bestFPro=bestFPro,
+                               bestModelPro=bestModelPro, bestScore=bestScore, bestScoreA=bestScoreA,
+                               bestScoreP=bestScoreP, bestScoreR=bestScoreR, bestScoreF=bestScoreF,
+                               bestModel=bestModel, debut=debut, out=print_out, yTps=yTps)
 
                 if (generation % 10) == 0:
                     print("Sauvegarde du tableau actuel dans les fichiers, génération:", generation)
@@ -436,7 +438,7 @@ class Genetic:
             x.put(list(arg1))
             y.put(list(arg2))
             besties.put(y2)
-            names.put(folderName + ": " + "{:.3f}".format(scoreMax))
+            names.put(folderName + ": " + "{:.4f}".format(scoreMax))
             iters.put(generation)
             times.put(yTps)
             names2.put(folderName + ": " + "{:.0f}".format(tps_debut.total_seconds()))
@@ -466,7 +468,7 @@ class Genetic:
             else:
                 self.listModels = ['x']
 
-        n = 4
+        n = 2
         mods = [self.listModels[i::n] for i in range(n)]
 
         threads = []

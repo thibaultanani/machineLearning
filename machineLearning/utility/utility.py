@@ -431,7 +431,7 @@ def res(heuristic, x, y, z, besties, names, iters, times, names2, metric, path, 
         ax.plot(list(range(0, len(val))), val, color=cmap[i])
         i = i + 1
     ax.set_title("Evolution du score par génération"
-                 + "\n" + heuristic)
+                 + "\n" + heuristic + "\n" + self.data_name)
     ax.set_xlabel("génération")
     ax.set_ylabel(metric)
     ax.grid()
@@ -447,8 +447,8 @@ def res(heuristic, x, y, z, besties, names, iters, times, names2, metric, path, 
     for val in times:
         ax2.plot(list(range(0, len(val))), val, color=cmap[i])
         i = i + 1
-    ax2.set_title("Evolution du temps par géénration"
-                 + "\n" + heuristic)
+    ax2.set_title("Evolution du temps par génération"
+                 + "\n" + heuristic + "\n" + self.data_name)
     ax2.set_xlabel("génération")
     ax2.set_ylabel("Temps en seconde")
     ax2.grid()

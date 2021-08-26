@@ -73,3 +73,9 @@ iterated = {
     "nei": 5,
     "kmax": 2,
 }
+
+random = {
+    "gen": 10,
+    "nei": 20,
+    "p": 1/2,
+}

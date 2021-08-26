@@ -28,12 +28,13 @@ class Hill:
         self.tab_find = 0
         self.data_name = data_name
 
-    def write_res(self, folderName, mode, n_gen, n_neighbors, n_mute_max, y1, y2, yX, colMax, bestScore,
+    def write_res(self, folderName, name, mode, n_gen, n_neighbors, n_mute_max, y1, y2, yX, colMax, bestScore,
                   bestScoreA, bestScoreP, bestScoreR, bestScoreF, bestModel, debut, out, yTps):
         a = os.path.join(os.path.join(self.path2, folderName), 'resultat.txt')
         f = open(a, "w")
-        string = "mode: " + mode + os.linesep + "générations: " + str(n_gen) +\
-                 os.linesep + "voisins: " + str(n_neighbors) + os.linesep + "mutations: " + str(n_mute_max) +\
+        string = "heuristique: Hill Climbing" + os.linesep + "mode: " + mode + os.linesep +\
+                 "name: " + name + os.linesep + "générations: " + str(n_gen) + os.linesep +\
+                 "voisins: " + str(n_neighbors) + os.linesep + "mutations: " + str(n_mute_max) +\
                  os.linesep + "meilleur: " + str(y1) + os.linesep + "classes: " + str(yX) + os.linesep + "colonnes:" +\
                  str(colMax.tolist()) + os.linesep + "meilleur score: " + str(bestScore) + os.linesep +\
                  "meilleure exactitude: " + str(bestScoreA) + os.linesep + "meilleure precision: " + str(bestScoreP) +\
@@ -182,11 +183,11 @@ class Hill:
                 fig, ax = plt.subplots()
                 ax.plot(x1, y1)
                 ax.set_title("Evolution du score par génération (" + folderName + ")"
-                             + "\nHill Climbing")
+                             + "\nHill Climbing\n" + self.data_name)
                 ax.set_xlabel("génération")
                 ax.set_ylabel(metric)
                 ax.grid()
-                ax.legend(labels=["Le meilleur: " + "{:.3f}".format(best_res)],
+                ax.legend(labels=["Le meilleur: " + "{:.4f}".format(best_res)],
                           loc='center left', bbox_to_anchor=(1.04, 0.5), borderaxespad=0)
                 a = os.path.join(os.path.join(self.path2, folderName), 'plot_' + str(n_gen) + '.png')
                 b = os.path.join(os.getcwd(), a)
@@ -199,7 +200,7 @@ class Hill:
                 ax2.plot(x1, yX)
 
                 ax2.set_title("Evolution du score par génération pour chacune des classes (" + folderName + ")"
-                              + "\nHill Climbing")
+                              + "\nHill Climbing\n" + self.data_name)
                 ax2.set_xlabel("génération")
                 ax2.set_ylabel(metric)
                 ax2.grid()
@@ -214,7 +215,7 @@ class Hill:
                 fig3, ax3 = plt.subplots()
                 ax3.plot(x1, yTps)
                 ax3.set_title("Evolution du temps d'exécution par génération (" + folderName + ")"
-                              + "\nHill Climbing")
+                              + "\nHill Climbing\n" + self.data_name)
                 ax3.set_xlabel("génération")
                 ax3.set_ylabel("Temps en seconde")
                 ax3.grid()
@@ -231,7 +232,7 @@ class Hill:
                     print("Sauvegarde du tableau actuel dans les fichiers, itération:", iteration)
                     tab.dump(self.tab_data, self.tab_vals, 'tab_' + self.data_name + '_' + mode)
 
-            self.write_res(folderName=folderName, mode=mode, n_gen=n_gen, n_neighbors=n_neighbors,
+            self.write_res(folderName=folderName, name=self.data_name, mode=mode, n_gen=n_gen, n_neighbors=n_neighbors,
                            n_mute_max=n_mute_max, y1=y1, y2=y2, yX=yX, colMax=best_cols, bestScore=best_res,
                            bestScoreA=best_accuracy, bestScoreP=best_precision, bestScoreR=best_recall,
                            bestScoreF=best_fscore, bestModel=best_model, debut=debut, out=print_out, yTps=yTps)
@@ -243,7 +244,7 @@ class Hill:
             x.put(list(arg1))
             y.put(list(arg2))
             besties.put(y1)
-            names.put(folderName + ": " + "{:.3f}".format(best_res))
+            names.put(folderName + ": " + "{:.4f}".format(best_res))
             iters.put(iteration)
             times.put(yTps)
             names2.put(folderName + ": " + "{:.0f}".format(tps_debut.total_seconds()))
@@ -273,7 +274,7 @@ class Hill:
             else:
                 self.listModels = ['x']
 
-        n = 4
+        n = 2
         mods = [self.listModels[i::n] for i in range(n)]
 
         threads = []

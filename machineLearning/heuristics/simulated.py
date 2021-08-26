@@ -32,11 +32,12 @@ class Simulated:
         self.tab_find = 0
         self.data_name = data_name
 
-    def write_res(self, folderName, mode, temperature, alpha, final_temperature, y1, y2, yX, colMax, bestScore,
+    def write_res(self, folderName, name, mode, temperature, alpha, final_temperature, y1, y2, yX, colMax, bestScore,
                   bestScoreA, bestScoreP, bestScoreR, bestScoreF, bestModel, debut, out, yTps):
         a = os.path.join(os.path.join(self.path2, folderName), 'resultat.txt')
         f = open(a, "w")
-        string = "mode: " + mode + os.linesep + "température initiale: " + str(temperature) + os.linesep + "alpha: " +\
+        string = "heuristique: Recuit Simulé" + os.linesep + "mode: " + mode + os.linesep +\
+                 "name: " + name + os.linesep + "température initiale: " + str(temperature) + os.linesep + "alpha: " +\
                  str(alpha) + os.linesep + "température finale: " + str(final_temperature) + os.linesep +\
                  "meilleur: " + str(y1) + os.linesep + "classes: " + str(yX) + os.linesep + "colonnes:" +\
                  str(colMax.tolist()) + os.linesep + "meilleur score: " + str(bestScore) + os.linesep +\
@@ -196,7 +197,7 @@ class Simulated:
                 ax.plot(x1, y1)
                 ax.plot(x1, y2)
                 ax.set_title("Evolution du score par génération (" + folderName + ")"
-                             + "\nRecuit simulé")
+                             + "\nRecuit simulé\n" + self.data_name)
                 ax.set_xlabel("génération")
                 ax.set_ylabel(metric)
                 ax.grid()
@@ -214,7 +215,7 @@ class Simulated:
                 ax2.plot(x1, yX)
 
                 ax2.set_title("Evolution du score par génération pour chacune des classes (" + folderName + ")"
-                              + "\nRecuit simulé")
+                              + "\nRecuit simulé\n" + self.data_name)
                 ax2.set_xlabel("génération")
                 ax2.set_ylabel(metric)
                 ax2.grid()
@@ -228,7 +229,7 @@ class Simulated:
                 fig3, ax3 = plt.subplots()
                 ax3.plot(x1, yTps)
                 ax3.set_title("Evolution du temps d'exécution par génération (" + folderName + ")"
-                              + "\nRecuit suimulé")
+                              + "\nRecuit suimulé\n" + self.data_name)
                 ax3.set_xlabel("génération")
                 ax3.set_ylabel("Temps en seconde")
                 ax3.grid()
@@ -251,8 +252,8 @@ class Simulated:
 
             temperature = begin_temperature
 
-            self.write_res(folderName=folderName, mode=mode, temperature=begin_temperature, alpha=alpha,
-                           final_temperature=final_temperature, y1=y1, y2=y2, yX=yX, colMax=best_cols,
+            self.write_res(folderName=folderName, name=self.data_name, mode=mode, temperature=begin_temperature,
+                           alpha=alpha, final_temperature=final_temperature, y1=y1, y2=y2, yX=yX, colMax=best_cols,
                            bestScore=best_res, bestScoreA=best_accuracy, bestScoreP=best_precision,
                            bestScoreR=best_recall, bestScoreF=best_fscore, bestModel=best_model, debut=debut,
                            out=print_out, yTps=yTps)
@@ -294,7 +295,7 @@ class Simulated:
             else:
                 self.listModels = ['x']
 
-        n = 4
+        n = 2
         mods = [self.listModels[i::n] for i in range(n)]
 
         threads = []

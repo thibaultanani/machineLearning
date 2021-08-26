@@ -1,7 +1,7 @@
 import machineLearning.preprocessing.config as cfg
 
 from machineLearning.preprocessing import data
-from machineLearning.heuristics import hill, genetic, iterated, differential, simulated, swarm, tabu, vns, ant
+from machineLearning.heuristics import hill, genetic, iterated, differential, simulated, swarm, tabu, vns, ant, random
 
 if __name__ == '__main__':
     d = data.Data(name=cfg.general['dataset'], target=cfg.general['target'], dropColsList=cfg.general['dropcol'],
@@ -66,7 +66,13 @@ if __name__ == '__main__':
                                             n_neighbors=cfg.iterated['nei'], kmax=cfg.iterated['kmax'], data=copy2,
                                             dummiesList=d.dummiesList, createDummies=createDummies,
                                             normalize=normalize, metric=metric)
+    elif cfg.general['heuristic'] == 'random':
+        heuristic = random.Random(d2, d, methods, target, origin, name)
+        g1, g2, g3, g4, g5 = heuristic.init(n_gen=cfg.random['gen'], proba=cfg.random['p'],
+                                            n_neighbors=cfg.random['nei'], data=copy2,
+                                            dummiesList=d.dummiesList, createDummies=createDummies,
+                                            normalize=normalize, metric=metric)
     else:
         print(cfg.general['heuristic'] +
               " n'est pas un nom d'heristique correct, veuillez choisir parmis les suivants:\n" +
-              "genetic, differential, swarm, ant, hill, tabu, simulated, vns, iterated")
+              "genetic, differential, swarm, ant, hill, tabu, simulated, vns, iterated, random")

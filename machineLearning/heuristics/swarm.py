@@ -103,7 +103,7 @@ class Swarm:
             model = LogisticRegression(solver='liblinear', C=10.0, class_weight='balanced')
         k = model_selection.StratifiedKFold(5)
         try:
-            tab_data, tab_val = tab.get([int(x) for x in particle.posiion], self.tab_data, self.tab_vals)
+            tab_data, tab_val = tab.get([int(x) for x in particle.position], self.tab_data, self.tab_vals)
             tab_val = np.array(tab_val)
             accuracy = (utility.getTotalTruePositive(tab_val) + utility.getTotalTrueNegative(tab_val)) / \
                        (utility.getTotalTruePositive(tab_val) + utility.getTotalTrueNegative(tab_val) +
@@ -125,7 +125,7 @@ class Swarm:
             tmp = tmp.iloc[:, particle.position]
             cols = tmp.columns
             self.tab_find = self.tab_find + 1
-        except AttributeError:
+        except:
             matrix = np.zeros((matrix_length, matrix_length), dtype=int)
             X, y, cols = utility.ready(self, particle.position, self.data, self.dummiesList, self.createDummies,
                                        self.normalize)
@@ -134,7 +134,7 @@ class Swarm:
             for train_index, test_index in k.split(X, y):  # Split in X
                 X_train, X_test = X[train_index], X[test_index]
                 y_train, y_test = y[train_index], y[test_index]
-                if self.mode == ('knn' or 'dct' or 'gbc' or 'lda' or 'qda' or 'adc' or 'bac'):
+                if self.mode == ('knn' or 'lda' or 'gnb'):
                     if self.mode == 'knn':
                         model = KNeighborsClassifier(n_neighbors=int(len(X_train) ** (1 / 2)))
                     sm = SMOTE(sampling_strategy='auto')
@@ -233,14 +233,16 @@ class PSO:
         self.path2 = os.getcwd() + '/out'
         self.data_name = data_name
 
-    def write_res(self, folderName, mode, n_pop, n_gen, w, c1, c2, y1, yX, colMax,
+    def write_res(self, folderName, name, mode, n_pop, n_gen, w, c1, c2, y1, yX, colMax,
                   bestScore, bestScoreA, bestScoreP, bestScoreR, bestScoreF,
                   bestModel, debut, insert, find, out, yTps):
         a = os.path.join(os.path.join(self.path2, folderName), 'resultat.txt')
         f = open(a, "w")
-        string = "mode: " + mode + os.linesep + "population: " + str(n_pop) + os.linesep + "générations: " +\
-                 str(n_gen) + os.linesep + "w: " + str(w) + os.linesep + "c1: " + str(c1) + os.linesep + "c2: " +\
-                 str(c2) + os.linesep + "meilleur: " + str(y1) + os.linesep + "classes: " + str(yX) + os.linesep +\
+        string = "heuristique: Optimisation par essaim de particules" + os.linesep +\
+                 "mode: " + mode + os.linesep + "name: " + name + os.linesep +\
+                 "population: " + str(n_pop) + os.linesep + "générations: " + str(n_gen) + os.linesep +\
+                 "w: " + str(w) + os.linesep + "c1: " + str(c1) + os.linesep + "c2: " + str(c2) + os.linesep +\
+                 "meilleur: " + str(y1) + os.linesep + "classes: " + str(yX) + os.linesep +\
                  "colonnes:" + str(colMax.tolist()) + os.linesep + "meilleur score: " + str(bestScore) + os.linesep +\
                  "meilleure exactitude: " + str(bestScoreA) + os.linesep + "meilleure precision: " + str(bestScoreP) +\
                  os.linesep + "meilleur rappel: " + str(bestScoreR) + os.linesep + "meilleur fscore: " +\
@@ -333,11 +335,11 @@ class PSO:
                 ax.plot(x1, y1)
                 # ax.plot(x1, y2)
                 ax.set_title("Evolution du score par génération (" + folderName + ")"
-                             + "\nOptimisation par essaim de particule")
+                             + "\nOptimisation par essaim de particules\n" + self.data_name)
                 ax.set_xlabel("génération")
                 ax.set_ylabel(metric)
                 ax.grid()
-                ax.legend(labels=["Le meilleur: " + "{:.3f}".format(search_space.gbest_value)],
+                ax.legend(labels=["Le meilleur: " + "{:.4f}".format(search_space.gbest_value)],
                           loc='center left', bbox_to_anchor=(1.04, 0.5), borderaxespad=0)
                 a = os.path.join(os.path.join(self.path2, folderName), 'plot_' + str(n_gen) + '.png')
                 b = os.path.join(os.getcwd(), a)
@@ -350,7 +352,7 @@ class PSO:
                 ax2.plot(x1, yX)
 
                 ax2.set_title("Evolution du score par génération pour chacune des classes (" + folderName + ")"
-                              + "\nOptimisation par essaim de particule")
+                              + "\nOptimisation par essaim de particules\n" + self.data_name)
                 ax2.set_xlabel("génération")
                 ax2.set_ylabel(metric)
                 ax2.grid()
@@ -364,7 +366,7 @@ class PSO:
                 fig3, ax3 = plt.subplots()
                 ax3.plot(x1, yTps)
                 ax3.set_title("Evolution du temps d'exécution par génération (" + folderName + ")"
-                              + "\nOptimisation par essaim de particule")
+                              + "\nOptimisation par essaim de particules\n" + self.data_name)
                 ax3.set_xlabel("génération")
                 ax3.set_ylabel("Temps en seconde")
                 ax3.grid()
@@ -377,11 +379,11 @@ class PSO:
 
                 iteration = iteration + 1
 
-                self.write_res(folderName=folderName, mode=mode, n_pop=n_pop, n_gen=n_gen, w=w, c1=c1, c2=c2, y1=y1,
-                               yX=yX, colMax=search_space.gbest_column, bestScore=search_space.gbest_value,
-                               bestScoreA=search_space.gbest_accuracy, bestScoreP=search_space.gbest_precision,
-                               bestScoreR=search_space.gbest_recall, bestScoreF=search_space.gbest_fscore,
-                               bestModel=search_space.gbest_matrix, debut=debut,
+                self.write_res(folderName=folderName, name=self.data_name, mode=mode, n_pop=n_pop, n_gen=n_gen, w=w,
+                               c1=c1, c2=c2, y1=y1, yX=yX, colMax=search_space.gbest_column,
+                               bestScore=search_space.gbest_value, bestScoreA=search_space.gbest_accuracy,
+                               bestScoreP=search_space.gbest_precision, bestScoreR=search_space.gbest_recall,
+                               bestScoreF=search_space.gbest_fscore, bestModel=search_space.gbest_matrix, debut=debut,
                                insert=search_space.tab_insert, find=search_space.tab_find, out=print_out, yTps=yTps)
 
                 if (iteration % 10) == 0:
@@ -397,7 +399,7 @@ class PSO:
             x.put(list(arg1))
             y.put(list(arg2))
             besties.put(y1)
-            names.put(folderName + ": " + "{:.3f}".format(search_space.gbest_value))
+            names.put(folderName + ": " + "{:.4f}".format(search_space.gbest_value))
             iters.put(iteration)
             times.put(yTps)
             names2.put(folderName + ": " + "{:.0f}".format(tps_debut.total_seconds()))
@@ -406,9 +408,9 @@ class PSO:
 
     def init(self, n_pop, n_gen, w, c1, c2, data, dummiesList, createDummies, normalize, metric):
 
-        print("#####################################")
-        print("#OPTIMSATION PAR ESSAIM DE PARTICULE#")
-        print("#####################################")
+        print("######################################")
+        print("#OPTIMSATION PAR ESSAIM DE PARTICULES#")
+        print("######################################")
         print()
 
         x = queue.Queue()
@@ -427,7 +429,7 @@ class PSO:
             else:
                 self.listModels = ['x']
 
-        n = 4
+        n = 2
         mods = [self.listModels[i::n] for i in range(n)]
 
         threads = []
