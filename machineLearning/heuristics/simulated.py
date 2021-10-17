@@ -3,8 +3,7 @@ import machineLearning.tab.tab as tab
 import machineLearning.utility.utility as utility
 
 import math
-import threading
-import queue
+import multiprocessing
 import numpy as np
 import matplotlib.pyplot as plt
 import random
@@ -54,7 +53,7 @@ class Simulated:
         f = open(a, "w")
         f.write(out)
 
-    def optimization(self, part, temperature, alpha, final_temperature, data,
+    def optimization(self, part, temperature, alpha, final_temperature, n_mute_max, data,
                      dummiesList, createDummies, normalize, metric, x, y, besties, names, iters, times, names2):
 
         debut = time.time()
@@ -105,7 +104,7 @@ class Simulated:
             while temperature > final_temperature:
                 instant = time.time()
 
-                mutate_index = random.sample(range(0, len(solution)), 1)
+                mutate_index = random.sample(range(0, len(solution)), random.randint(1, n_mute_max))
                 neighbor = solution.copy()
                 for m in mutate_index:
                     neighbor[m] = not neighbor[m]
@@ -272,21 +271,22 @@ class Simulated:
 
             tab.dump(self.tab_data, self.tab_vals, 'tab_' + self.data_name + '_' + mode)
 
-    def init(self, temperature, alpha, final_temperature, data, dummiesList, createDummies, normalize, metric):
+    def init(self, temperature, alpha, final_temperature, n_mute_max, data, dummiesList, createDummies, normalize,
+             metric):
 
         print("###############")
         print("#RECUIT SIMULE#")
         print("###############")
         print()
 
-        x = queue.Queue()
-        y = queue.Queue()
-        z = queue.Queue()
-        besties = queue.Queue()
-        names = queue.Queue()
-        iters = queue.Queue()
-        times = queue.Queue()
-        names2 = queue.Queue()
+        x = multiprocessing.Queue()
+        y = multiprocessing.Queue()
+        z = multiprocessing.Queue()
+        besties = multiprocessing.Queue()
+        names = multiprocessing.Queue()
+        iters = multiprocessing.Queue()
+        times = multiprocessing.Queue()
+        names2 = multiprocessing.Queue()
 
         if isinstance(self.listModels, str):
             if self.listModels == 'all':
@@ -295,24 +295,42 @@ class Simulated:
             else:
                 self.listModels = ['x']
 
-        n = 2
+        n = 9
         mods = [self.listModels[i::n] for i in range(n)]
 
-        threads = []
+        processes = []
         for part in mods:
-            thread = threading.Thread(target=self.optimization,
-                                      args=(part, temperature, alpha, final_temperature, data, dummiesList,
-                                            createDummies, normalize, metric, x, y, besties,
-                                            names, iters, times, names2))
-            threads.append(thread)
-            thread.start()
+            process = multiprocessing.Process(target=self.optimization,
+                                              args=(part, temperature, alpha, final_temperature, n_mute_max, data,
+                                                    dummiesList, createDummies, normalize, metric, x, y, besties,
+                                                    names, iters, times, names2))
+            processes.append(process)
+            process.start()
 
-        for thread in threads:
-            thread.join()
+        for process in processes:
+            process.join()
 
-        return utility.res(heuristic="Recuit simulé", x=list(x.queue), y=list(y.queue), z=list(z.queue),
-                           besties=list(besties.queue), names=list(names.queue), iters=list(iters.queue),
-                           times=list(times.queue), names2=list(names2.queue), metric=metric, path=self.path2,
+        x.put(None)
+        y.put(None)
+        z.put(None)
+        besties.put(None)
+        names.put(None)
+        names2.put(None)
+        iters.put(None)
+        times.put(None)
+
+        x = list(iter(x.get, None))
+        y = list(iter(y.get, None))
+        z = list(iter(z.get, None))
+        besties = list(iter(besties.get, None))
+        names = list(iter(names.get, None))
+        names2 = list(iter(names2.get, None))
+        iters = list(iter(iters.get, None))
+        times = list(iter(times.get, None))
+
+        return utility.res(heuristic="Recuit simulé", x=x, y=y, z=z,
+                           besties=besties, names=names, iters=iters,
+                           times=times, names2=names2, metric=metric, path=self.path2,
                            n_gen=temperature-1, self=self)
 
 
@@ -332,6 +350,6 @@ if __name__ == '__main__':
     alpha = 1
     final = 0
     mut = copy.columns.size - 1
-    g1, g2, g3, g4, g5 = simulated.init(temperature=10, alpha=1, final_temperature=0, data=copy2,
+    g1, g2, g3, g4, g5 = simulated.init(temperature=10, alpha=1, final_temperature=0, n_mute_max=mut, data=copy2,
                                         dummiesList=d.dummiesList, createDummies=createDummies, normalize=normalize,
                                         metric="accuracy")

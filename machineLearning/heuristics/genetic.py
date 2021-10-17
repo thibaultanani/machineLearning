@@ -2,8 +2,7 @@ import machineLearning.preprocessing.data as data
 import machineLearning.tab.tab as tab
 import machineLearning.utility.utility as utility
 
-import threading
-import queue
+import multiprocessing
 import numpy as np
 import sys
 import matplotlib.pyplot as plt
@@ -452,14 +451,14 @@ class Genetic:
         print("######################")
         print()
 
-        x = queue.Queue()
-        y = queue.Queue()
-        z = queue.Queue()
-        besties = queue.Queue()
-        names = queue.Queue()
-        iters = queue.Queue()
-        times = queue.Queue()
-        names2 = queue.Queue()
+        x = multiprocessing.Queue()
+        y = multiprocessing.Queue()
+        z = multiprocessing.Queue()
+        besties = multiprocessing.Queue()
+        names = multiprocessing.Queue()
+        iters = multiprocessing.Queue()
+        times = multiprocessing.Queue()
+        names2 = multiprocessing.Queue()
 
         if isinstance(self.listModels, str):
             if self.listModels == 'all':
@@ -468,24 +467,42 @@ class Genetic:
             else:
                 self.listModels = ['x']
 
-        n = 2
+        n = 9
         mods = [self.listModels[i::n] for i in range(n)]
 
-        threads = []
+        processes = []
         for part in mods:
-            thread = threading.Thread(target=self.natural_selection,
-                                      args=(part, n_pop, n_gen, n_mut, data, dummiesList,
-                                            createDummies, normalize, metric, x, y, besties,
-                                            names, iters, times, names2))
-            threads.append(thread)
-            thread.start()
+            process = multiprocessing.Process(target=self.natural_selection,
+                                              args=(part, n_pop, n_gen, n_mut, data, dummiesList,
+                                                    createDummies, normalize, metric, x, y, besties,
+                                                    names, iters, times, names2))
+            processes.append(process)
+            process.start()
 
-        for thread in threads:
-            thread.join()
+        for process in processes:
+            process.join()
 
-        return utility.res(heuristic="Algorithme génétique", x=list(x.queue), y=list(y.queue), z=list(z.queue),
-                           besties=list(besties.queue), names=list(names.queue), iters=list(iters.queue),
-                           times=list(times.queue), names2=list(names2.queue), metric=metric, path=self.path2,
+        x.put(None)
+        y.put(None)
+        z.put(None)
+        besties.put(None)
+        names.put(None)
+        names2.put(None)
+        iters.put(None)
+        times.put(None)
+
+        x = list(iter(x.get, None))
+        y = list(iter(y.get, None))
+        z = list(iter(z.get, None))
+        besties = list(iter(besties.get, None))
+        names = list(iter(names.get, None))
+        names2 = list(iter(names2.get, None))
+        iters = list(iter(iters.get, None))
+        times = list(iter(times.get, None))
+
+        return utility.res(heuristic="Algorithme génétique", x=x, y=y, z=z,
+                           besties=besties, names=names, iters=iters,
+                           times=times, names2=names2, metric=metric, path=self.path2,
                            n_gen=n_gen, self=self)
 
 

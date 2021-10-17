@@ -47,12 +47,14 @@ ant = {
 hill = {
     "gen": 10,
     "nei": 20,
+    "dist": 1,
 }
 
 tabu = {
     "tab": 200,
     "gen": 10,
     "nei": 20,
+    "dist": 1,
 }
 
 simulated = {
@@ -60,6 +62,7 @@ simulated = {
     "alpha": 1,
     "final": 0,
 }
+
 vns = {
     "gen": 20,
     "gen vnd": 2,

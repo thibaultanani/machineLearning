@@ -41,12 +41,12 @@ if __name__ == '__main__':
     elif cfg.general['heuristic'] == 'hill':
         heuristic = hill.Hill(d2, d, methods, target, origin, name)
         g1, g2, g3, g4, g5 = heuristic.init(n_gen=cfg.hill['gen'], n_neighbors=cfg.hill['nei'],
-                                            n_mute_max=copy.columns.size - 1, data=copy2, dummiesList=d.dummiesList,
+                                            n_mute_max=cfg.tabu['dist'], data=copy2, dummiesList=d.dummiesList,
                                             createDummies=createDummies, normalize=normalize, metric=metric)
     elif cfg.general['heuristic'] == 'tabu':
         heuristic = tabu.Tabu(d2, d, methods, target, origin, name)
         g1, g2, g3, g4, g5 = heuristic.init(n_tabu=cfg.tabu['tab'], n_gen=cfg.tabu['gen'], n_neighbors=cfg.tabu['nei'],
-                                            n_mute_max=copy.columns.size - 1, data=copy2, dummiesList=d.dummiesList,
+                                            n_mute_max=cfg.tabu['dist'], data=copy2, dummiesList=d.dummiesList,
                                             createDummies=createDummies, normalize=normalize, metric=metric)
     elif cfg.general['heuristic'] == 'simulated':
         heuristic = simulated.Simulated(d2, d, methods, target, origin, name)
