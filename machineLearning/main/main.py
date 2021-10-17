@@ -1,7 +1,7 @@
 import machineLearning.preprocessing.config as cfg
 
 from machineLearning.preprocessing import data
-from machineLearning.heuristics import hill, genetic, iterated, differential, simulated, swarm, tabu, vns, ant, random
+from machineLearning.heuristics import hill, genetic, differential, simulated, swarm, tabu, random
 
 if __name__ == '__main__':
     d = data.Data(name=cfg.general['dataset'], target=cfg.general['target'], dropColsList=cfg.general['dropcol'],
@@ -32,12 +32,6 @@ if __name__ == '__main__':
                                             c1=cfg.swarm['c1'], c2=cfg.swarm['c2'], data=copy2,
                                             dummiesList=dummiesLst, createDummies=createDummies, normalize=normalize,
                                             metric=metric)
-    elif cfg.general['heuristic'] == 'ant':
-        heuristic = ant.ACO(d2, d, methods, target, origin, name)
-        g1, g2, g3, g4, g5 = heuristic.init(n_pop=cfg.ant['pop'], n_gen=cfg.ant['gen'], p=cfg.ant['p'],
-                                            phi=cfg.ant['phi'], alpha=cfg.ant['alpha'], data=copy2,
-                                            dummiesList=dummiesLst, createDummies=createDummies, normalize=normalize,
-                                            metric=metric)
     elif cfg.general['heuristic'] == 'hill':
         heuristic = hill.Hill(d2, d, methods, target, origin, name)
         g1, g2, g3, g4, g5 = heuristic.init(n_gen=cfg.hill['gen'], n_neighbors=cfg.hill['nei'],
@@ -51,20 +45,8 @@ if __name__ == '__main__':
     elif cfg.general['heuristic'] == 'simulated':
         heuristic = simulated.Simulated(d2, d, methods, target, origin, name)
         g1, g2, g3, g4, g5 = heuristic.init(temperature=cfg.simulated['temperature'], alpha=cfg.simulated['alpha'],
-                                            final_temperature=cfg.simulated['final'], data=copy2,
-                                            dummiesList=d.dummiesList, createDummies=createDummies,
-                                            normalize=normalize, metric=metric)
-    elif cfg.general['heuristic'] == 'vns':
-        heuristic = vns.VNS(d2, d, methods, target, origin, name)
-        g1, g2, g3, g4, g5 = heuristic.init(n_gen=cfg.vns['gen'], n_gen_vnd=cfg.vns['gen vnd'],
-                                            n_neighbors=cfg.vns['nei'], kmax=cfg.vns['kmax'], data=copy2,
-                                            dummiesList=d.dummiesList, createDummies=createDummies,
-                                            normalize=normalize, metric=metric)
-    elif cfg.general['heuristic'] == 'iterated':
-        heuristic = iterated.Iterated(d2, d, methods, target, origin, name)
-        g1, g2, g3, g4, g5 = heuristic.init(n_gen=cfg.iterated['gen'], n_gen_vnd=cfg.iterated['gen vnd'],
-                                            n_neighbors=cfg.iterated['nei'], kmax=cfg.iterated['kmax'], data=copy2,
-                                            dummiesList=d.dummiesList, createDummies=createDummies,
+                                            final_temperature=cfg.simulated['final'], n_mute_max=cfg.tabu['dist'],
+                                            data=copy2, dummiesList=d.dummiesList, createDummies=createDummies,
                                             normalize=normalize, metric=metric)
     elif cfg.general['heuristic'] == 'random':
         heuristic = random.Random(d2, d, methods, target, origin, name)

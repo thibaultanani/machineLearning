@@ -36,14 +36,6 @@ swarm = {
     "c2": 0.5,
 }
 
-ant = {
-    "pop": 5,
-    "gen": 5,
-    "p": 0.5,
-    "phi": 0.8,
-    "alpha": 2
-}
-
 hill = {
     "gen": 10,
     "nei": 20,
@@ -61,20 +53,7 @@ simulated = {
     "temperature": 20,
     "alpha": 1,
     "final": 0,
-}
-
-vns = {
-    "gen": 20,
-    "gen vnd": 2,
-    "nei": 2,
-    "kmax": 2,
-}
-
-iterated = {
-    "gen": 20,
-    "gen vnd": 2,
-    "nei": 5,
-    "kmax": 2,
+    "dist": 1,
 }
 
 random = {
