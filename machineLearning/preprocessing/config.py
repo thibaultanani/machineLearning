@@ -3,7 +3,7 @@
 general = {
     "dataset": "madelon",
     "target": "Class",
-    "heuristic": "vns",
+    "heuristic": "differential",
     "deletecol": True,
     "dropna": True,
     "normalize": True,
@@ -17,13 +17,13 @@ general = {
 
 genetic = {
     "pop": 20,
-    "gen": 3,
+    "gen": 10,
     "mut": 5,
 }
 
 differential = {
     "pop": 20,
-    "gen": 3,
+    "gen": 10,
     "cross proba": 0.5,
     "F": 1,
 }

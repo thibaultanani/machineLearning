@@ -36,12 +36,13 @@ class Genetic:
         self.tab_find = 0
         self.data_name = data_name
 
-    def getNumberdecomposition(self, n, total):
-        dividers = sorted(random.sample(range(1, total), n - 1))
-        return [a - b for a, b in zip(dividers + [total], [0] + dividers)]
+    def getNumberdecomposition(self, total):
+        part1 = random.randint(1, total - 1)
+        part2 = total - part1
+        return [part1, part2]
 
     def crossover(self, p1, p2):
-        decomp = self.getNumberdecomposition(2, int(len(p1) / 2))
+        decomp = self.getNumberdecomposition(int(len(p1) / 2))
         part1 = p1[0:decomp[0]]
         part2 = p2[decomp[0]:-decomp[1]]
         part3 = p1[-decomp[1]:]

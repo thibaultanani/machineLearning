@@ -30,11 +30,8 @@ class Differential:
 
     def crossover(self, ind, mutant, cross_proba):
         cross_points = np.random.rand(self.copy.columns.size-1) <= cross_proba
-        # print(cross_points, "cross_points")
 
         trial = np.where(cross_points, mutant, ind)
-        # print(trial, "trial")
-        # print(ind, "original")
 
         idxs = [idx for idx in range(len(ind))]
         selected = np.random.choice(idxs, 1, replace=False)
@@ -43,7 +40,7 @@ class Differential:
 
         return trial
 
-    def mutate(self, pop, xr1, xr2, xr3, F):
+    def mutate(self, xr1, xr2, xr3, F):
         mutant = xr1.astype(np.float32) + F * (xr2.astype(np.float32) - xr3.astype(np.float32))
         # print(mutant)
         mutant = np.clip(mutant, 0, 1)
@@ -242,7 +239,7 @@ class Differential:
                     xr1, xr2, xr3 = pop[selected]
 
                     # mutation
-                    mutant = self.mutate(pop, xr1, xr2, xr3, F)
+                    mutant = self.mutate(xr1, xr2, xr3, F)
 
                     # croisement
                     trial = self.crossover(pop[i], mutant, cross_proba)
