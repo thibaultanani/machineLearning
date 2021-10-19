@@ -1,7 +1,7 @@
 import machineLearning.preprocessing.config as cfg
 
 from machineLearning.preprocessing import data
-from machineLearning.heuristics import hill, genetic, differential, simulated, swarm, tabu, random
+from machineLearning.heuristics import hill, genetic, differential, simulated, swarm, tabu, random, proba, pbil
 
 if __name__ == '__main__':
     d = data.Data(name=cfg.general['dataset'], target=cfg.general['target'], dropColsList=cfg.general['dropcol'],
@@ -32,10 +32,23 @@ if __name__ == '__main__':
                                             c1=cfg.swarm['c1'], c2=cfg.swarm['c2'], data=copy2,
                                             dummiesList=dummiesLst, createDummies=createDummies, normalize=normalize,
                                             metric=metric)
+    elif cfg.general['heuristic'] == 'proba':
+        heuristic = proba.Proba(d2, d, methods, target, origin, name)
+        g1, g2, g3, g4, g5 = heuristic.init(n_pop=cfg.proba['pop'], n_gen=cfg.proba['gen'],
+                                            cross_proba=cfg.proba['cross proba'], F=cfg.proba['F'],
+                                            low_bound=cfg.proba['low_bound'], up_bound=cfg.proba['up_bound'],
+                                            data=copy2, dummiesList=d.dummiesList, createDummies=createDummies,
+                                            normalize=normalize, metric=metric)
+    elif cfg.general['heuristic'] == 'pbil':
+        heuristic = pbil.Pbil(d2, d, methods, target, origin, name)
+        g1, g2, g3, g4, g5 = heuristic.init(n_pop=cfg.pbil['pop'], n_gen=cfg.pbil['gen'],
+                                            learning_rate=cfg.pbil['learning_rate'], mut_proba=cfg.pbil['mut_proba'],
+                                            mut_shift=cfg.pbil['mut_shift'], data=copy2, dummiesList=d.dummiesList,
+                                            createDummies=createDummies, normalize=normalize, metric=metric)
     elif cfg.general['heuristic'] == 'hill':
         heuristic = hill.Hill(d2, d, methods, target, origin, name)
         g1, g2, g3, g4, g5 = heuristic.init(n_gen=cfg.hill['gen'], n_neighbors=cfg.hill['nei'],
-                                            n_mute_max=cfg.tabu['dist'], data=copy2, dummiesList=d.dummiesList,
+                                            n_mute_max=cfg.hill['dist'], data=copy2, dummiesList=d.dummiesList,
                                             createDummies=createDummies, normalize=normalize, metric=metric)
     elif cfg.general['heuristic'] == 'tabu':
         heuristic = tabu.Tabu(d2, d, methods, target, origin, name)
@@ -45,7 +58,7 @@ if __name__ == '__main__':
     elif cfg.general['heuristic'] == 'simulated':
         heuristic = simulated.Simulated(d2, d, methods, target, origin, name)
         g1, g2, g3, g4, g5 = heuristic.init(temperature=cfg.simulated['temperature'], alpha=cfg.simulated['alpha'],
-                                            final_temperature=cfg.simulated['final'], n_mute_max=cfg.tabu['dist'],
+                                            final_temperature=cfg.simulated['final'], n_mute_max=cfg.simulated['dist'],
                                             data=copy2, dummiesList=d.dummiesList, createDummies=createDummies,
                                             normalize=normalize, metric=metric)
     elif cfg.general['heuristic'] == 'random':
@@ -56,5 +69,5 @@ if __name__ == '__main__':
                                             normalize=normalize, metric=metric)
     else:
         print(cfg.general['heuristic'] +
-              " n'est pas un nom d'heristique correct, veuillez choisir parmis les suivants:\n" +
-              "genetic, differential, swarm, ant, hill, tabu, simulated, vns, iterated, random")
+              " n'est pas un nom d'heristique correct, veuillez choisir parmi les suivants:\n" +
+              "genetic, differential, swarm, proba, pbil, hill, tabu, simulated, random")

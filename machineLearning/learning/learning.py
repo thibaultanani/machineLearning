@@ -297,45 +297,45 @@ class Learning:
             debut = time.time()
             k = model_selection.StratifiedKFold(5)
             mean = []
-            # for train_index, test_index in k.split(X, y):  # Split in X
-            #
-            #     X_train, X_test = X[train_index], X[test_index]
-            #     y_train, y_test = y[train_index], y[test_index]
-            #
-            #     if mods == ('knn' or 'dct' or 'gbc' or 'lda' or 'qda' or 'adc' or 'bac'):
-            #         if mods == 'knn':
-            #             model = KNeighborsClassifier(n_neighbors=int(len(X_train) ** (1 / 2)))
-            #         sm = SMOTE(sampling_strategy='auto')
-            #         # X_train, y_train = sm.fit_resample(X_train, y_train)
-            #
-            #     model.fit(X_train, y_train)
-            #     y_pred = model.predict(X_test)
-            #     bin_array.extend(y_test)
-            #
-            #     self.__classification_report_with_accuracy_score(y_test, y_pred, originalclass, predictedclass)
-            #
-            #     matrix += confusion_matrix(y_test, y_pred)
-            #
-            #     print(accuracy_score(y_test, y_pred))
-            #     mean.append(accuracy_score(y_test, y_pred))
-            out = Parallel(n_jobs=4, verbose=100, pre_dispatch='1.5*n_jobs')(
-                delayed(self.train)(train_index=train_index, test_index=test_index, X=X, y=y, model=model, mode=mods,
-                                    originalclass=originalclass, predictedclass=predictedclass)
-                for train_index, test_index in k.split(X, y))
+            for train_index, test_index in k.split(X, y):  # Split in X
 
-            matrix = sum([d['conf_mat'] for d in out])
-            origin = [d['origin'] for d in out]
-            originalclass = [item for sublist in origin for item in sublist]
-            predi = [d['predi'] for d in out]
-            predictedclass = [item for sublist in predi for item in sublist]
-            print(matrix)
-            print(originalclass)
-            print(predictedclass)
-            print(classification_report(originalclass, predictedclass))
+                X_train, X_test = X[train_index], X[test_index]
+                y_train, y_test = y[train_index], y[test_index]
+
+                if mods == ('knn' or 'dct' or 'gbc' or 'lda' or 'qda' or 'adc' or 'bac'):
+                    if mods == 'knn':
+                        model = KNeighborsClassifier(n_neighbors=int(len(X_train) ** (1 / 2)))
+                    sm = SMOTE(sampling_strategy='auto')
+                    # X_train, y_train = sm.fit_resample(X_train, y_train)
+
+                model.fit(X_train, y_train)
+                y_pred = model.predict(X_test)
+                bin_array.extend(y_test)
+
+                self.__classification_report_with_accuracy_score(y_test, y_pred, originalclass, predictedclass)
+
+                matrix += confusion_matrix(y_test, y_pred)
+
+                print(accuracy_score(y_test, y_pred))
+                mean.append(accuracy_score(y_test, y_pred))
+            # out = Parallel(n_jobs=4, verbose=100, pre_dispatch='1.5*n_jobs')(
+            #     delayed(self.train)(train_index=train_index, test_index=test_index, X=X, y=y, model=model, mode=mods,
+            #                         originalclass=originalclass, predictedclass=predictedclass)
+            #     for train_index, test_index in k.split(X, y))
+
+            # matrix = sum([d['conf_mat'] for d in out])
+            # origin = [d['origin'] for d in out]
+            # originalclass = [item for sublist in origin for item in sublist]
+            # predi = [d['predi'] for d in out]
+            # predictedclass = [item for sublist in predi for item in sublist]
+            # print(matrix)
+            # print(originalclass)
+            # print(predictedclass)
+            # print(classification_report(originalclass, predictedclass))
             # list_accuracies.append(sum(mean)/len(mean))
             # print("mean_recall:", sum(mean)/len(mean))
 
-            print("temps exe:", timedelta(seconds=(time.time() - debut)))
+            # print("temps exe:", timedelta(seconds=(time.time() - debut)))
 
             precision, recall, fscore, support = s(originalclass, predictedclass, average='macro')
             specificity_tab = []
@@ -397,7 +397,7 @@ class Learning:
         print("mean_recalls: ", list_recalls)
         print("#")
 
-        return lst, mNameList, self.f7(mNameList2), Flist, Ftab, list_recalls
+        return lst, mNameList, self.f7(mNameList2), Flist, Ftab
 
 
 if __name__ == '__main__':

@@ -36,6 +36,23 @@ swarm = {
     "c2": 0.5,
 }
 
+proba = {
+    "pop": 20,
+    "gen": 10,
+    "cross proba": 0.5,
+    "F": 1,
+    "low_bound": 0.1,
+    "up_bound": 0.9,
+}
+
+pbil = {
+    "pop": 20,
+    "gen": 10,
+    "learning_rate": 0.1,
+    "mut_proba": 0.2,
+    "mut_shift": 0.05,
+}
+
 hill = {
     "gen": 10,
     "nei": 20,
