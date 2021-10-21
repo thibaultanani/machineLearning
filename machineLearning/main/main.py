@@ -1,7 +1,8 @@
 import machineLearning.preprocessing.config as cfg
 
 from machineLearning.preprocessing import data
-from machineLearning.heuristics import hill, genetic, differential, simulated, swarm, tabu, random, proba, pbil
+from machineLearning.heuristics import hill, genetic, differential, simulated, swarm, tabu, random,\
+    proba, pbil, pbil_diff
 
 if __name__ == '__main__':
     d = data.Data(name=cfg.general['dataset'], target=cfg.general['target'], dropColsList=cfg.general['dropcol'],
@@ -45,6 +46,14 @@ if __name__ == '__main__':
                                             learning_rate=cfg.pbil['learning_rate'], mut_proba=cfg.pbil['mut_proba'],
                                             mut_shift=cfg.pbil['mut_shift'], data=copy2, dummiesList=d.dummiesList,
                                             createDummies=createDummies, normalize=normalize, metric=metric)
+    elif cfg.general['heuristic'] == 'pbil_diff':
+        heuristic = pbil_diff.PbilDiff(d2, d, methods, target, origin, name)
+        g1, g2, g3, g4, g5 = heuristic.init(n_pop=cfg.pbil_diff['pop'], n_gen=cfg.pbil_diff['gen'],
+                                            F=cfg.pbil_diff['F'],
+                                            learning_rate=cfg.pbil_diff['learning_rate'],
+                                            mut_proba=cfg.pbil_diff['mut_proba'], mut_shift=cfg.pbil_diff['mut_shift'],
+                                            data=copy2, dummiesList=d.dummiesList, createDummies=createDummies,
+                                            normalize=normalize, metric=metric)
     elif cfg.general['heuristic'] == 'hill':
         heuristic = hill.Hill(d2, d, methods, target, origin, name)
         g1, g2, g3, g4, g5 = heuristic.init(n_gen=cfg.hill['gen'], n_neighbors=cfg.hill['nei'],
@@ -70,4 +79,4 @@ if __name__ == '__main__':
     else:
         print(cfg.general['heuristic'] +
               " n'est pas un nom d'heristique correct, veuillez choisir parmi les suivants:\n" +
-              "genetic, differential, swarm, proba, pbil, hill, tabu, simulated, random")
+              "genetic, differential, swarm, proba, pbil, pbil_diff, hill, tabu, simulated, random")

@@ -20,7 +20,7 @@ warnings.filterwarnings('ignore')
 np.set_printoptions(threshold=sys.maxsize)
 
 
-class Pbil:
+class PbilDiff:
 
     def __init__(self, data, dataObject, listModels, target, copy, data_name):
         self.data = data
@@ -55,14 +55,25 @@ class Pbil:
                 probas[i] = probas[i]*(1.0-mutShift)+random.choice([0, 1])*mutShift
         return probas
 
-    def write_res(self, folderName, name, mode, n_pop, n_gen, learning_rate, mut_proba,  mut_shift, y1, y2, yX, colMax,
-                  bestScorePro, bestAPro, bestPPro, bestRPro, bestFPro, bestModelPro, bestScore, bestScoreA, bestScoreP,
-                  bestScoreR, bestScoreF, bestModel, probas, debut, out, yTps):
+    def mutate(self, xr1, xr2, xr3, F):
+        mutant = xr1.astype(np.float32) + F * (xr2.astype(np.float32) - xr3.astype(np.float32))
+        # print(mutant)
+        mutant = np.clip(mutant, 0, 1)
+        # print(mutant)
+        mutant = mutant.astype(bool)
+        # print(mutant, "mutant")
+
+        return mutant
+
+    def write_res(self, folderName, name, mode, n_pop, n_gen, F, learning_rate, mut_proba,  mut_shift,
+                  y1, y2, yX, colMax, bestScorePro, bestAPro, bestPPro, bestRPro, bestFPro, bestModelPro, bestScore,
+                  bestScoreA, bestScoreP, bestScoreR, bestScoreF, bestModel, probas, debut, out, yTps):
         a = os.path.join(os.path.join(self.path2, folderName), 'resultat.txt')
         f = open(a, "w")
-        string = "heuristique: Apprentissage incrémental à base de population" + os.linesep +\
+        string = "heuristique: Apprentissage incrémental à base de population différentiel" + os.linesep +\
                  "mode: " + mode + os.linesep + "name: " + name + os.linesep +\
                  "population: " + str(n_pop) + os.linesep + "générations: " + str(n_gen) + os.linesep +\
+                 "F: " + str(F) + os.linesep +\
                  "taux d'apprentissage: " + str(learning_rate) + os.linesep +\
                  "probabilité de mutation: " + str(mut_proba) + os.linesep +\
                  "magnitude de mutation: " + str(mut_shift) + os.linesep +\
@@ -87,8 +98,8 @@ class Pbil:
         f = open(a, "w")
         f.write(out)
 
-    def natural_selection(self, part, n_pop, n_gen, learning_rate, mut_proba, mut_shift, data, dummiesList,
-                          createDummies, normalize, metric, x, y, besties, names, iters, times, names2):
+    def natural_selection(self, part, n_pop, n_gen, F, learning_rate, mut_proba, mut_shift, data,
+                          dummiesList, createDummies, normalize, metric, x, y, besties, names, iters, times, names2):
 
         debut = time.time()
         print_out = ""
@@ -213,6 +224,25 @@ class Pbil:
                 # TODO Faire en sorte de ne pas recalculer la meilleure solution
                 pop = np.vstack((pop, bestInd))
 
+                # Liste des mutants
+                mutants = []
+
+                n_mut = n_pop + 1
+
+                for i in range(n_mut):
+
+                    # Selection des 3 individus aléatoires de la population actuelle
+                    idxs = [idx for idx in range(n_mut) if idx != i]
+                    selected = np.random.choice(idxs, 3, replace=False)
+                    xr1, xr2, xr3 = pop[selected]
+
+                    # mutation
+                    mutant = self.mutate(xr1, xr2, xr3, F)
+
+                    mutants.append(mutant)
+
+                pop = np.vstack((pop, mutants))
+
                 scores, models, inds, cols, scoresA, scoresP, scoresR, scoresF, obj = \
                     utility.fitness(self=self, pop=pop, mode=mode, data=data, dummiesList=dummiesList,
                                     createDummies=createDummies, normalize=normalize, metric=metric)
@@ -269,7 +299,7 @@ class Pbil:
                 ax.plot(x1, y1)
                 ax.plot(x1, y2)
                 ax.set_title("Evolution du score par génération (" + folderName + ")"
-                             + "\nApprentissage incrémental à base de population\n" + self.data_name)
+                             + "\nApprentissage incrémental à base de population différentiel\n" + self.data_name)
                 ax.set_xlabel("génération")
                 ax.set_ylabel(metric)
                 ax.grid()
@@ -296,7 +326,7 @@ class Pbil:
                 ax2.plot(x1, yX)
 
                 ax2.set_title("Evolution du rappel par génération pour chacune des classes (" + folderName + ")"
-                              + "\nApprentissage incrémental à base de population\n" + self.data_name)
+                              + "\nApprentissage incrémental à base de population différentiel\n" + self.data_name)
                 ax2.set_xlabel("génération")
                 ax2.set_ylabel("rappel")
                 ax2.grid()
@@ -310,7 +340,7 @@ class Pbil:
                 fig3, ax3 = plt.subplots()
                 ax3.plot(x1, yTps)
                 ax3.set_title("Evolution du temps d'exécution par génération (" + folderName + ")"
-                              + "\nApprentissage incrémental à base de population\n" + self.data_name)
+                              + "\nApprentissage incrémental à base de population différentiel\n" + self.data_name)
                 ax3.set_xlabel("génération")
                 ax3.set_ylabel("Temps en seconde")
                 ax3.grid()
@@ -334,8 +364,8 @@ class Pbil:
                     scoreFMax = bestScoreF
 
                 self.write_res(folderName=folderName, name=self.data_name, mode=mode, n_pop=n_pop, n_gen=n_gen,
-                               learning_rate=learning_rate, mut_proba=mut_proba, mut_shift=mut_shift,
-                               y1=y1, y2=y2, yX=yX, colMax=colMax, bestScorePro=bestScorePro,
+                               F=F, learning_rate=learning_rate, mut_proba=mut_proba,
+                               mut_shift=mut_shift, y1=y1, y2=y2, yX=yX, colMax=colMax, bestScorePro=bestScorePro,
                                bestAPro=bestAPro, bestPPro=bestPPro, bestRPro=bestRPro, bestFPro=bestFPro,
                                bestModelPro=bestModelPro, bestScore=bestScore, bestScoreA=bestScoreA,
                                bestScoreP=bestScoreP, bestScoreR=bestScoreR, bestScoreF=bestScoreF,
@@ -359,12 +389,12 @@ class Pbil:
 
             tab.dump(self.tab_data, self.tab_vals, 'tab_' + self.data_name + '_' + mode)
 
-    def init(self, n_pop, n_gen, learning_rate, mut_proba, mut_shift, data, dummiesList, createDummies,
+    def init(self, n_pop, n_gen, F, learning_rate, mut_proba, mut_shift, data, dummiesList, createDummies,
              normalize, metric):
 
-        print("################################################")
-        print("#APPRENTISSAGE INCREMENTAL A BASE DE POPULATION#")
-        print("################################################")
+        print("#############################################################")
+        print("#APPRENTISSAGE INCREMENTAL A BASE DE POPULATION DIFFERENTIEL#")
+        print("#############################################################")
         print()
 
         x = multiprocessing.Queue()
@@ -389,9 +419,9 @@ class Pbil:
         processes = []
         for part in mods:
             process = multiprocessing.Process(target=self.natural_selection,
-                                              args=(part, n_pop, n_gen, learning_rate, mut_proba, mut_shift,
-                                                    data, dummiesList, createDummies, normalize, metric, x, y, besties,
-                                                    names, iters, times, names2))
+                                              args=(part, n_pop, n_gen, F, learning_rate, mut_proba,
+                                                    mut_shift, data, dummiesList, createDummies, normalize, metric,
+                                                    x, y, besties, names, iters, times, names2))
             processes.append(process)
             process.start()
 
@@ -416,7 +446,7 @@ class Pbil:
         iters = list(iter(iters.get, None))
         times = list(iter(times.get, None))
 
-        return utility.res(heuristic="Apprentissage incrémental à base de population", x=x, y=y, z=z,
+        return utility.res(heuristic="Apprentissage incrémental à base de population différentiel", x=x, y=y, z=z,
                            besties=besties, names=names, iters=iters,
                            times=times, names2=names2, metric=metric, path=self.path2,
                            n_gen=n_gen, self=self)
@@ -433,13 +463,14 @@ if __name__ == '__main__':
     d2, target, copy, copy2, copy3, copy4, dummiesLst, ratio, chi2, anova2, originLst =\
         d.ready(deleteCols=True, dropna=True, thresholdDrop=70, createDummies=True, normalize=False)
 
-    genetic = Pbil(d2, d, ['lr'], target, originLst, name)
+    genetic = PbilDiff(d2, d, ['lr'], target, originLst, name)
     pop = 5
     gen = 5
+    F = 1
     learning_rate = 0.1
     mut_proba = 0.2
     mut_shift = 0.05
-    g1, g2, g3, g4, g5 = genetic.init(n_pop=pop, n_gen=gen, learning_rate=learning_rate, mut_proba=mut_proba,
-                                      mut_shift=mut_shift, data=copy2, dummiesList=d.dummiesList,
+    g1, g2, g3, g4, g5 = genetic.init(n_pop=pop, n_gen=gen, F=F, learning_rate=learning_rate,
+                                      mut_proba=mut_proba, mut_shift=mut_shift, data=copy2, dummiesList=d.dummiesList,
                                       createDummies=createDummies, normalize=normalize, metric="accuracy")
 

@@ -53,6 +53,15 @@ pbil = {
     "mut_shift": 0.05,
 }
 
+pbil_diff = {
+    "pop": 20,
+    "gen": 20,
+    "F": 1,
+    "learning_rate": 0.1,
+    "mut_proba": 0.2,
+    "mut_shift": 0.05,
+}
+
 hill = {
     "gen": 10,
     "nei": 20,

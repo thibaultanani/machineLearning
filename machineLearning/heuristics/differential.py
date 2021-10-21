@@ -58,7 +58,7 @@ class Differential:
         string = "heuristique: Evolution différentielle" + os.linesep + "mode: " + mode + os.linesep +\
                  "name: " + name + os.linesep + "population: " + str(n_pop) + os.linesep +\
                  "générations: " + str(n_gen) + os.linesep +\
-                 "probabilité de crisement: " + str(cross_proba) + os.linesep + "F: " + str(F) + os.linesep +\
+                 "probabilité de croisement: " + str(cross_proba) + os.linesep + "F: " + str(F) + os.linesep +\
                  "moyenne: " + str(y1) + os.linesep + "meilleur: " + str(y2) + os.linesep +\
                  "classes: " + str(yX) + os.linesep + "colonnes:" + str(colMax.tolist()) + os.linesep +\
                  "scores:" + str(bestScorePro) + os.linesep + "exactitude:" + str(bestAPro) + os.linesep +\
