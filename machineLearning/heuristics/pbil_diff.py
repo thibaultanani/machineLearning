@@ -55,6 +55,18 @@ class PbilDiff:
                 probas[i] = probas[i]*(1.0-mutShift)+random.choice([0, 1])*mutShift
         return probas
 
+    def crossover(self, ind, mutant, cross_proba):
+        cross_points = np.random.rand(self.copy.columns.size-1) <= cross_proba
+
+        trial = np.where(cross_points, mutant, ind)
+
+        idxs = [idx for idx in range(len(ind))]
+        selected = np.random.choice(idxs, 1, replace=False)
+
+        trial[selected] = not trial[selected]
+
+        return trial
+
     def mutate(self, xr1, xr2, xr3, F):
         mutant = xr1.astype(np.float32) + F * (xr2.astype(np.float32) - xr3.astype(np.float32))
         # print(mutant)
@@ -65,7 +77,7 @@ class PbilDiff:
 
         return mutant
 
-    def write_res(self, folderName, name, mode, n_pop, n_gen, F, learning_rate, mut_proba,  mut_shift,
+    def write_res(self, folderName, name, mode, n_pop, n_gen, cross_proba, F, learning_rate, mut_proba,  mut_shift,
                   y1, y2, yX, colMax, bestScorePro, bestAPro, bestPPro, bestRPro, bestFPro, bestModelPro, bestScore,
                   bestScoreA, bestScoreP, bestScoreR, bestScoreF, bestModel, probas, debut, out, yTps):
         a = os.path.join(os.path.join(self.path2, folderName), 'resultat.txt')
@@ -73,7 +85,7 @@ class PbilDiff:
         string = "heuristique: Apprentissage incrémental à base de population différentiel" + os.linesep +\
                  "mode: " + mode + os.linesep + "name: " + name + os.linesep +\
                  "population: " + str(n_pop) + os.linesep + "générations: " + str(n_gen) + os.linesep +\
-                 "F: " + str(F) + os.linesep +\
+                 "probabilité de croisement: " + str(cross_proba) + os.linesep + "F: " + str(F) + os.linesep +\
                  "taux d'apprentissage: " + str(learning_rate) + os.linesep +\
                  "probabilité de mutation: " + str(mut_proba) + os.linesep +\
                  "magnitude de mutation: " + str(mut_shift) + os.linesep +\
@@ -98,7 +110,7 @@ class PbilDiff:
         f = open(a, "w")
         f.write(out)
 
-    def natural_selection(self, part, n_pop, n_gen, F, learning_rate, mut_proba, mut_shift, data,
+    def natural_selection(self, part, n_pop, n_gen, cross_proba, F, learning_rate, mut_proba, mut_shift, data,
                           dummiesList, createDummies, normalize, metric, x, y, besties, names, iters, times, names2):
 
         debut = time.time()
@@ -239,7 +251,10 @@ class PbilDiff:
                     # mutation
                     mutant = self.mutate(xr1, xr2, xr3, F)
 
-                    mutants.append(mutant)
+                    # croisement
+                    trial = self.crossover(pop[i], mutant, cross_proba)
+
+                    mutants.append(trial)
 
                 pop = np.vstack((pop, mutants))
 
@@ -364,7 +379,7 @@ class PbilDiff:
                     scoreFMax = bestScoreF
 
                 self.write_res(folderName=folderName, name=self.data_name, mode=mode, n_pop=n_pop, n_gen=n_gen,
-                               F=F, learning_rate=learning_rate, mut_proba=mut_proba,
+                               cross_proba=cross_proba,F=F, learning_rate=learning_rate, mut_proba=mut_proba,
                                mut_shift=mut_shift, y1=y1, y2=y2, yX=yX, colMax=colMax, bestScorePro=bestScorePro,
                                bestAPro=bestAPro, bestPPro=bestPPro, bestRPro=bestRPro, bestFPro=bestFPro,
                                bestModelPro=bestModelPro, bestScore=bestScore, bestScoreA=bestScoreA,
@@ -389,7 +404,7 @@ class PbilDiff:
 
             tab.dump(self.tab_data, self.tab_vals, 'tab_' + self.data_name + '_' + mode)
 
-    def init(self, n_pop, n_gen, F, learning_rate, mut_proba, mut_shift, data, dummiesList, createDummies,
+    def init(self, n_pop, n_gen, cross_proba, F, learning_rate, mut_proba, mut_shift, data, dummiesList, createDummies,
              normalize, metric):
 
         print("#############################################################")
@@ -419,7 +434,7 @@ class PbilDiff:
         processes = []
         for part in mods:
             process = multiprocessing.Process(target=self.natural_selection,
-                                              args=(part, n_pop, n_gen, F, learning_rate, mut_proba,
+                                              args=(part, n_pop, n_gen, cross_proba, F, learning_rate, mut_proba,
                                                     mut_shift, data, dummiesList, createDummies, normalize, metric,
                                                     x, y, besties, names, iters, times, names2))
             processes.append(process)
@@ -466,11 +481,12 @@ if __name__ == '__main__':
     genetic = PbilDiff(d2, d, ['lr'], target, originLst, name)
     pop = 5
     gen = 5
+    cross_proba = 0.5
     F = 1
     learning_rate = 0.1
     mut_proba = 0.2
     mut_shift = 0.05
-    g1, g2, g3, g4, g5 = genetic.init(n_pop=pop, n_gen=gen, F=F, learning_rate=learning_rate,
+    g1, g2, g3, g4, g5 = genetic.init(n_pop=pop, n_gen=gen, cross_proba=cross_proba, F=F, learning_rate=learning_rate,
                                       mut_proba=mut_proba, mut_shift=mut_shift, data=copy2, dummiesList=d.dummiesList,
                                       createDummies=createDummies, normalize=normalize, metric="accuracy")
 

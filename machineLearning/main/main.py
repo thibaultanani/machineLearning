@@ -49,7 +49,7 @@ if __name__ == '__main__':
     elif cfg.general['heuristic'] == 'pbil_diff':
         heuristic = pbil_diff.PbilDiff(d2, d, methods, target, origin, name)
         g1, g2, g3, g4, g5 = heuristic.init(n_pop=cfg.pbil_diff['pop'], n_gen=cfg.pbil_diff['gen'],
-                                            F=cfg.pbil_diff['F'],
+                                            cross_proba=cfg.pbil_diff['cross proba'], F=cfg.pbil_diff['F'],
                                             learning_rate=cfg.pbil_diff['learning_rate'],
                                             mut_proba=cfg.pbil_diff['mut_proba'], mut_shift=cfg.pbil_diff['mut_shift'],
                                             data=copy2, dummiesList=d.dummiesList, createDummies=createDummies,
