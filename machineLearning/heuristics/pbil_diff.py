@@ -110,6 +110,42 @@ class PbilDiff:
         f = open(a, "w")
         f.write(out)
 
+    def selection(self, pop, mutants, n_pop):
+        pop_list = []
+        for ind, score, model, col, scoreA, scoreP, scoreR, scoreF in pop:
+            pop_list.append(list([list(ind), score, model, col, scoreA, scoreP, scoreR, scoreF]))
+        mut_list = []
+        for ind, score, model, col, scoreA, scoreP, scoreR, scoreF in mutants:
+            mut_list.append(list([list(ind), score, model, col, scoreA, scoreP, scoreR, scoreF]))
+        newpop = []
+        scores = []
+        models = []
+        cols = []
+        scoresA = []
+        scoresP = []
+        scoresR = []
+        scoresF = []
+        for i in range(n_pop):
+            if pop_list[i][1] > mut_list[i][1]:
+                newpop.append((pop_list[i][0]))
+                scores.append((pop_list[i][1]))
+                models.append((pop_list[i][2]))
+                cols.append((pop_list[i][3]))
+                scoresA.append((pop_list[i][4]))
+                scoresP.append((pop_list[i][5]))
+                scoresR.append((pop_list[i][6]))
+                scoresF.append((pop_list[i][7]))
+            else:
+                newpop.append((mut_list[i][0]))
+                scores.append((mut_list[i][1]))
+                models.append((mut_list[i][2]))
+                cols.append((mut_list[i][3]))
+                scoresA.append((mut_list[i][4]))
+                scoresP.append((mut_list[i][5]))
+                scoresR.append((mut_list[i][6]))
+                scoresF.append((mut_list[i][7]))
+        return np.array(newpop), scores, models, cols, scoresA, scoresP, scoresR, scoresF
+
     def natural_selection(self, part, n_pop, n_gen, cross_proba, F, learning_rate, mut_proba, mut_shift, data,
                           dummiesList, createDummies, normalize, metric, x, y, besties, names, iters, times, names2):
 
@@ -231,20 +267,17 @@ class PbilDiff:
 
                 instant = time.time()
 
-                pop = self.create_population(inds=n_pop, size=self.copy.columns.size - 1, probas=probas)
-
-                # TODO Faire en sorte de ne pas recalculer la meilleure solution
-                pop = np.vstack((pop, bestInd))
-
                 # Liste des mutants
                 mutants = []
 
-                n_mut = n_pop + 1
+                n_diff = int(n_pop/2)
+                n_pbil = n_pop - n_diff
 
-                for i in range(n_mut):
+                # Les mutants de l'évolution différentielle
+                for i in range(n_diff):
 
                     # Selection des 3 individus aléatoires de la population actuelle
-                    idxs = [idx for idx in range(n_mut) if idx != i]
+                    idxs = [idx for idx in range(n_pop) if idx != i]
                     selected = np.random.choice(idxs, 3, replace=False)
                     xr1, xr2, xr3 = pop[selected]
 
@@ -256,11 +289,25 @@ class PbilDiff:
 
                     mutants.append(trial)
 
-                pop = np.vstack((pop, mutants))
+                # Les mutants du pbil
+                mut_pbil = self.create_population(inds=n_pbil, size=self.copy.columns.size - 1, probas=probas)
 
-                scores, models, inds, cols, scoresA, scoresP, scoresR, scoresF, obj = \
-                    utility.fitness(self=self, pop=pop, mode=mode, data=data, dummiesList=dummiesList,
+                mutants = np.vstack((mutants, mut_pbil))
+
+                # Calcul du score pour l'ensemble des mutants
+                scores_m, models_m, inds_m, cols_m, scoresA_m, scoresP_m, scoresR_m, scoresF_m, obj = \
+                    utility.fitness(self=self, pop=mutants, mode=mode, data=data, dummiesList=dummiesList,
                                     createDummies=createDummies, normalize=normalize, metric=metric)
+
+                self.tab_data, self.tab_vals, self.tab_insert, self.tab_find = \
+                    obj.tab_data, obj.tab_vals, obj.tab_insert, obj.tab_find
+
+                # selection des meilleurs individus
+                pop_score = zip(pop, scores, models, cols, scoresA, scoresP, scoresR, scoresF)
+                mut_score = zip(mutants, scores_m, models_m, cols_m, scoresA_m, scoresP_m, scoresR_m, scoresF_m)
+
+                pop, scores, models, cols, scoresA, scoresP, scoresR, scoresF = \
+                    self.selection(pop_score, mut_score, n_pop)
 
                 bestScore = np.max(scores)
                 argmax = np.argmax(scores)
@@ -428,7 +475,7 @@ class PbilDiff:
             else:
                 self.listModels = ['x']
 
-        n = 9
+        n = len(self.listModels)
         mods = [self.listModels[i::n] for i in range(n)]
 
         processes = []

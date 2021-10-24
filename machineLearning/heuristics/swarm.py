@@ -428,7 +428,7 @@ class PSO:
             else:
                 self.listModels = ['x']
 
-        n = 9
+        n = len(self.listModels)
         mods = [self.listModels[i::n] for i in range(n)]
 
         processes = []
