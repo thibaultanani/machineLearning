@@ -1,6 +1,7 @@
 import machineLearning.preprocessing.data as data
 import machineLearning.tab.tab as tab
 import machineLearning.utility.utility as utility
+import machineLearning.utility.strategy as strategy
 
 import multiprocessing
 import numpy as np
@@ -67,19 +68,21 @@ class PbilDiff:
 
         return trial
 
-    def mutate(self, xr1, xr2, xr3, F):
-        mutant = xr1.astype(np.float32) + F * (xr2.astype(np.float32) - xr3.astype(np.float32))
-        # print(mutant)
-        mutant = np.clip(mutant, 0, 1)
-        # print(mutant)
+    def mutate(self, F, pop, bestInd, ind_pos, strat):
+        try:
+            mut_strategy = eval("strategy." + strat)
+        except:
+            mut_strategy = eval("strategy.de_rand_1")
+
+        mutant = mut_strategy(F, pop, bestInd, ind_pos)
+
         mutant = mutant.astype(bool)
-        # print(mutant, "mutant")
 
         return mutant
 
-    def write_res(self, folderName, name, mode, n_pop, n_gen, cross_proba, F, learning_rate, mut_proba,  mut_shift,
-                  y1, y2, yX, colMax, bestScorePro, bestAPro, bestPPro, bestRPro, bestFPro, bestModelPro, bestScore,
-                  bestScoreA, bestScoreP, bestScoreR, bestScoreF, bestModel, probas, debut, out, yTps):
+    def write_res(self, folderName, name, mode, n_pop, n_gen, cross_proba, F, learning_rate, mut_proba, mut_shift,
+                  strat, y1, y2, yX, colMax, bestScorePro, bestAPro, bestPPro, bestRPro, bestFPro, bestModelPro,
+                  bestScore, bestScoreA, bestScoreP, bestScoreR, bestScoreF, bestModel, probas, debut, out, yTps):
         a = os.path.join(os.path.join(self.path2, folderName), 'resultat.txt')
         f = open(a, "w")
         string = "heuristique: Apprentissage incrémental à base de population différentiel" + os.linesep +\
@@ -89,6 +92,7 @@ class PbilDiff:
                  "taux d'apprentissage: " + str(learning_rate) + os.linesep +\
                  "probabilité de mutation: " + str(mut_proba) + os.linesep +\
                  "magnitude de mutation: " + str(mut_shift) + os.linesep +\
+                 "stratégie de mutation: " + str(strat) + os.linesep +\
                  "vecteur de probabilité final: " + str(probas) + os.linesep +\
                  "moyenne: " + str(y1) + os.linesep + "meilleur: " + str(y2) + os.linesep +\
                  "classes: " + str(yX) + os.linesep + "colonnes:" + str(colMax.tolist()) + os.linesep +\
@@ -146,7 +150,7 @@ class PbilDiff:
                 scoresF.append((mut_list[i][7]))
         return np.array(newpop), scores, models, cols, scoresA, scoresP, scoresR, scoresF
 
-    def natural_selection(self, part, n_pop, n_gen, cross_proba, F, learning_rate, mut_proba, mut_shift, data,
+    def natural_selection(self, part, n_pop, n_gen, cross_proba, F, learning_rate, mut_proba, mut_shift, strat, data,
                           dummiesList, createDummies, normalize, metric, x, y, besties, names, iters, times, names2):
 
         debut = time.time()
@@ -276,13 +280,8 @@ class PbilDiff:
                 # Les mutants de l'évolution différentielle
                 for i in range(n_diff):
 
-                    # Selection des 3 individus aléatoires de la population actuelle
-                    idxs = [idx for idx in range(n_pop) if idx != i]
-                    selected = np.random.choice(idxs, 3, replace=False)
-                    xr1, xr2, xr3 = pop[selected]
-
                     # mutation
-                    mutant = self.mutate(xr1, xr2, xr3, F)
+                    mutant = self.mutate(F, pop, bestInd, i, strat)
 
                     # croisement
                     trial = self.crossover(pop[i], mutant, cross_proba)
@@ -427,9 +426,9 @@ class PbilDiff:
 
                 self.write_res(folderName=folderName, name=self.data_name, mode=mode, n_pop=n_pop, n_gen=n_gen,
                                cross_proba=cross_proba,F=F, learning_rate=learning_rate, mut_proba=mut_proba,
-                               mut_shift=mut_shift, y1=y1, y2=y2, yX=yX, colMax=colMax, bestScorePro=bestScorePro,
-                               bestAPro=bestAPro, bestPPro=bestPPro, bestRPro=bestRPro, bestFPro=bestFPro,
-                               bestModelPro=bestModelPro, bestScore=bestScore, bestScoreA=bestScoreA,
+                               mut_shift=mut_shift, strat=strat, y1=y1, y2=y2, yX=yX, colMax=colMax,
+                               bestScorePro=bestScorePro, bestAPro=bestAPro, bestPPro=bestPPro, bestRPro=bestRPro,
+                               bestFPro=bestFPro, bestModelPro=bestModelPro, bestScore=bestScore, bestScoreA=bestScoreA,
                                bestScoreP=bestScoreP, bestScoreR=bestScoreR, bestScoreF=bestScoreF,
                                bestModel=bestModel, probas=probas, debut=debut, out=print_out, yTps=yTps)
 
@@ -451,8 +450,8 @@ class PbilDiff:
 
             tab.dump(self.tab_data, self.tab_vals, 'tab_' + self.data_name + '_' + mode)
 
-    def init(self, n_pop, n_gen, cross_proba, F, learning_rate, mut_proba, mut_shift, data, dummiesList, createDummies,
-             normalize, metric):
+    def init(self, n_pop, n_gen, cross_proba, F, learning_rate, mut_proba, mut_shift, strat, data, dummiesList,
+             createDummies, normalize, metric):
 
         print("#############################################################")
         print("#APPRENTISSAGE INCREMENTAL A BASE DE POPULATION DIFFERENTIEL#")
@@ -482,8 +481,8 @@ class PbilDiff:
         for part in mods:
             process = multiprocessing.Process(target=self.natural_selection,
                                               args=(part, n_pop, n_gen, cross_proba, F, learning_rate, mut_proba,
-                                                    mut_shift, data, dummiesList, createDummies, normalize, metric,
-                                                    x, y, besties, names, iters, times, names2))
+                                                    mut_shift, strat, data, dummiesList, createDummies, normalize,
+                                                    metric, x, y, besties, names, iters, times, names2))
             processes.append(process)
             process.start()
 
@@ -533,7 +532,9 @@ if __name__ == '__main__':
     learning_rate = 0.1
     mut_proba = 0.2
     mut_shift = 0.05
+    strat = 'de_rand_1'
     g1, g2, g3, g4, g5 = genetic.init(n_pop=pop, n_gen=gen, cross_proba=cross_proba, F=F, learning_rate=learning_rate,
-                                      mut_proba=mut_proba, mut_shift=mut_shift, data=copy2, dummiesList=d.dummiesList,
-                                      createDummies=createDummies, normalize=normalize, metric="accuracy")
+                                      mut_proba=mut_proba, mut_shift=mut_shift, strat=strat, data=copy2,
+                                      dummiesList=d.dummiesList, createDummies=createDummies, normalize=normalize,
+                                      metric="accuracy")
 

@@ -25,6 +25,7 @@ if __name__ == '__main__':
         heuristic = differential.Differential(d2, d, methods, target, origin, name)
         g1, g2, g3, g4, g5 = heuristic.init(n_pop=cfg.differential['pop'], n_gen=cfg.differential['gen'],
                                             cross_proba=cfg.differential['cross proba'], F=cfg.differential['F'],
+                                            strat=cfg.differential['strat'],
                                             data=copy2, dummiesList=d.dummiesList, createDummies=createDummies,
                                             normalize=normalize, metric=metric)
     elif cfg.general['heuristic'] == 'swarm':
@@ -52,6 +53,7 @@ if __name__ == '__main__':
                                             cross_proba=cfg.pbil_diff['cross proba'], F=cfg.pbil_diff['F'],
                                             learning_rate=cfg.pbil_diff['learning_rate'],
                                             mut_proba=cfg.pbil_diff['mut_proba'], mut_shift=cfg.pbil_diff['mut_shift'],
+                                            strat=cfg.pbil_diff['strat'],
                                             data=copy2, dummiesList=d.dummiesList, createDummies=createDummies,
                                             normalize=normalize, metric=metric)
     elif cfg.general['heuristic'] == 'hill':

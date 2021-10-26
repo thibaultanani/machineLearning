@@ -1,6 +1,7 @@
 import machineLearning.preprocessing.data as data
 import machineLearning.tab.tab as tab
 import machineLearning.utility.utility as utility
+import machineLearning.utility.strategy as strategy
 
 import multiprocessing
 import numpy as np
@@ -40,17 +41,19 @@ class Differential:
 
         return trial
 
-    def mutate(self, xr1, xr2, xr3, F):
-        mutant = xr1.astype(np.float32) + F * (xr2.astype(np.float32) - xr3.astype(np.float32))
-        # print(mutant)
-        mutant = np.clip(mutant, 0, 1)
-        # print(mutant)
+    def mutate(self, F, pop, bestInd, ind_pos, strat):
+        try:
+            mut_strategy = eval("strategy." + strat)
+        except:
+            mut_strategy = eval("strategy.de_rand_1")
+
+        mutant = mut_strategy(F, pop, bestInd, ind_pos)
+
         mutant = mutant.astype(bool)
-        # print(mutant, "mutant")
 
         return mutant
 
-    def write_res(self, folderName, name, mode, n_pop, n_gen, cross_proba, F, y1, y2, yX, colMax, bestScorePro,
+    def write_res(self, folderName, name, mode, n_pop, n_gen, cross_proba, F, strat, y1, y2, yX, colMax, bestScorePro,
                   bestAPro, bestPPro, bestRPro, bestFPro, bestModelPro, bestScore, bestScoreA, bestScoreP, bestScoreR,
                   bestScoreF, bestModel, debut, out, yTps):
         a = os.path.join(os.path.join(self.path2, folderName), 'resultat.txt')
@@ -59,6 +62,7 @@ class Differential:
                  "name: " + name + os.linesep + "population: " + str(n_pop) + os.linesep +\
                  "générations: " + str(n_gen) + os.linesep +\
                  "probabilité de croisement: " + str(cross_proba) + os.linesep + "F: " + str(F) + os.linesep +\
+                 "stratégie de mutation: " + str(strat) + os.linesep +\
                  "moyenne: " + str(y1) + os.linesep + "meilleur: " + str(y2) + os.linesep +\
                  "classes: " + str(yX) + os.linesep + "colonnes:" + str(colMax.tolist()) + os.linesep +\
                  "scores:" + str(bestScorePro) + os.linesep + "exactitude:" + str(bestAPro) + os.linesep +\
@@ -114,7 +118,7 @@ class Differential:
                 scoresF.append((mut_list[i][7]))
         return np.array(newpop), scores, models, cols, scoresA, scoresP, scoresR, scoresF
 
-    def natural_selection(self, part, n_pop, n_gen, cross_proba, F, data, dummiesList,
+    def natural_selection(self, part, n_pop, n_gen, cross_proba, F, strat, data, dummiesList,
                           createDummies, normalize, metric, x, y, besties, names, iters, times, names2):
 
         debut = time.time()
@@ -233,13 +237,8 @@ class Differential:
 
                 for i in range(n_pop):
 
-                    # Selection des 3 individus aléatoires de la population actuelle
-                    idxs = [idx for idx in range(n_pop) if idx != i]
-                    selected = np.random.choice(idxs, 3, replace=False)
-                    xr1, xr2, xr3 = pop[selected]
-
                     # mutation
-                    mutant = self.mutate(xr1, xr2, xr3, F)
+                    mutant = self.mutate(F, pop, bestInd, i, strat)
 
                     # croisement
                     trial = self.crossover(pop[i], mutant, cross_proba)
@@ -372,7 +371,7 @@ class Differential:
                     scoreFMax = bestScoreF
 
                 self.write_res(folderName=folderName, name=self.data_name, mode=mode, n_pop=n_pop, n_gen=n_gen,
-                               cross_proba=cross_proba, F=F, y1=y1, y2=y2, yX=yX, colMax=colMax,
+                               cross_proba=cross_proba, F=F, strat=strat, y1=y1, y2=y2, yX=yX, colMax=colMax,
                                bestScorePro=bestScorePro, bestAPro=bestAPro, bestPPro=bestPPro, bestRPro=bestRPro,
                                bestFPro=bestFPro, bestModelPro=bestModelPro, bestScore=bestScore, bestScoreA=bestScoreA,
                                bestScoreP=bestScoreP, bestScoreR=bestScoreR, bestScoreF=bestScoreF, bestModel=bestModel,
@@ -396,7 +395,7 @@ class Differential:
 
             tab.dump(self.tab_data, self.tab_vals, 'tab_' + self.data_name + '_' + mode)
 
-    def init(self, n_pop, n_gen, cross_proba, F, data, dummiesList, createDummies, normalize, metric):
+    def init(self, n_pop, n_gen, cross_proba, F, strat, data, dummiesList, createDummies, normalize, metric):
 
         print("#######################################")
         print("#ALGORITHME A EVOLUTION DIFFERENTIELLE#")
@@ -425,7 +424,7 @@ class Differential:
         processes = []
         for part in mods:
             process = multiprocessing.Process(target=self.natural_selection,
-                                              args=(part, n_pop, n_gen, cross_proba, F, data, dummiesList,
+                                              args=(part, n_pop, n_gen, cross_proba, F, strat, data, dummiesList,
                                                     createDummies, normalize, metric, x, y, besties,
                                                     names, iters, times, names2))
             processes.append(process)
@@ -474,7 +473,8 @@ if __name__ == '__main__':
     gen = 5
     cross_proba = 0.5
     F = 1
-    g1, g2, g3, g4, g5 = genetic.init(n_pop=pop, n_gen=gen, cross_proba=cross_proba, F=F,
+    strat = 'de_rand_1'
+    g1, g2, g3, g4, g5 = genetic.init(n_pop=pop, n_gen=gen, cross_proba=cross_proba, F=F, strat=strat,
                                       data=copy2, dummiesList=d.dummiesList, createDummies=createDummies,
                                       normalize=normalize, metric="accuracy")
 
