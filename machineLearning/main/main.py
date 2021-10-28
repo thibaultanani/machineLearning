@@ -2,7 +2,7 @@ import machineLearning.preprocessing.config as cfg
 
 from machineLearning.preprocessing import data
 from machineLearning.heuristics import hill, genetic, differential, simulated, swarm, tabu, random,\
-    proba, pbil, pbil_diff
+    proba, pbil, pbil_diff, differential_v2, pbil_diff_v2
 
 if __name__ == '__main__':
     d = data.Data(name=cfg.general['dataset'], target=cfg.general['target'], dropColsList=cfg.general['dropcol'],
@@ -26,6 +26,15 @@ if __name__ == '__main__':
         g1, g2, g3, g4, g5 = heuristic.init(n_pop=cfg.differential['pop'], n_gen=cfg.differential['gen'],
                                             cross_proba=cfg.differential['cross proba'], F=cfg.differential['F'],
                                             strat=cfg.differential['strat'],
+                                            data=copy2, dummiesList=d.dummiesList, createDummies=createDummies,
+                                            normalize=normalize, metric=metric)
+    elif cfg.general['heuristic'] == 'differential_v2':
+        heuristic = differential_v2.Differential(d2, d, methods, target, origin, name)
+        g1, g2, g3, g4, g5 = heuristic.init(n_pop=cfg.differential_v2['pop'], n_gen=cfg.differential_v2['gen'],
+                                            cross_proba=cfg.differential_v2['cross proba'], F=cfg.differential_v2['F'],
+                                            learning_rate=cfg.differential_v2['learning_rate'],
+                                            mut_proba=cfg.differential_v2['mut_proba'],
+                                            mut_shift=cfg.differential_v2['mut_shift'],
                                             data=copy2, dummiesList=d.dummiesList, createDummies=createDummies,
                                             normalize=normalize, metric=metric)
     elif cfg.general['heuristic'] == 'swarm':
@@ -54,6 +63,18 @@ if __name__ == '__main__':
                                             learning_rate=cfg.pbil_diff['learning_rate'],
                                             mut_proba=cfg.pbil_diff['mut_proba'], mut_shift=cfg.pbil_diff['mut_shift'],
                                             strat=cfg.pbil_diff['strat'],
+                                            data=copy2, dummiesList=d.dummiesList, createDummies=createDummies,
+                                            normalize=normalize, metric=metric)
+    elif cfg.general['heuristic'] == 'pbil_diff_v2':
+        heuristic = pbil_diff_v2.PbilDiff(d2, d, methods, target, origin, name)
+        g1, g2, g3, g4, g5 = heuristic.init(n_pop=cfg.pbil_diff_v2['pop'], n_gen=cfg.pbil_diff_v2['gen'],
+                                            cross_proba=cfg.pbil_diff_v2['cross proba'], F=cfg.pbil_diff_v2['F'],
+                                            learning_rate=cfg.pbil_diff_v2['learning_rate'],
+                                            mut_proba=cfg.pbil_diff_v2['mut_proba'],
+                                            mut_shift=cfg.pbil_diff_v2['mut_shift'],
+                                            learning_rate_diff=cfg.pbil_diff_v2['learning_rate_diff'],
+                                            mut_proba_diff=cfg.pbil_diff_v2['mut_proba_diff'],
+                                            mut_shift_diff=cfg.pbil_diff_v2['mut_shift_diff'],
                                             data=copy2, dummiesList=d.dummiesList, createDummies=createDummies,
                                             normalize=normalize, metric=metric)
     elif cfg.general['heuristic'] == 'hill':

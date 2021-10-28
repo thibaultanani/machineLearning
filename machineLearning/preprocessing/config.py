@@ -29,6 +29,16 @@ differential = {
     "strat": "de_rand_1",
 }
 
+differential_v2 = {
+    "pop": 20,
+    "gen": 10,
+    "cross proba": 0.5,
+    "F": 1,
+    "learning_rate": 0.1,
+    "mut_proba": 0.2,
+    "mut_shift": 0.05,
+}
+
 swarm = {
     "pop": 20,
     "gen": 3,
@@ -63,6 +73,19 @@ pbil_diff = {
     "mut_proba": 0.2,
     "mut_shift": 0.05,
     "strat": "de_rand_1",
+}
+
+pbil_diff_v2 = {
+    "pop": 20,
+    "gen": 10,
+    "cross proba": 0.5,
+    "F": 1,
+    "learning_rate": 0.1,
+    "mut_proba": 0.2,
+    "mut_shift": 0.05,
+    "learning_rate_diff": 0.1,
+    "mut_proba_diff": 0.2,
+    "mut_shift_diff": 0.05,
 }
 
 hill = {
