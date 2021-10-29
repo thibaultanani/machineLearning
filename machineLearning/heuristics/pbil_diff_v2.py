@@ -47,7 +47,8 @@ class PbilDiff:
 
     def update_proba(self, maxi, probas, learningRate):
         for i in range(len(probas)):
-            probas[i] = probas[i]*(1.0-learningRate)+maxi[i]*learningRate
+            if maxi[i] is not None:
+                probas[i] = probas[i]*(1.0-learningRate)+maxi[i]*learningRate
         return probas
 
     def mutate_proba(self, probas, mutProba, mutShift):
@@ -56,20 +57,8 @@ class PbilDiff:
                 probas[i] = probas[i]*(1.0-mutShift)+random.choice([0, 1])*mutShift
         return probas
 
-    def crossover(self, ind, mutant, cross_proba):
-        cross_points = np.random.rand(self.copy.columns.size-1) <= cross_proba
-
-        trial = np.where(cross_points, mutant, ind)
-
-        idxs = [idx for idx in range(len(ind))]
-        selected = np.random.choice(idxs, 1, replace=False)
-
-        trial[selected] = not trial[selected]
-
-        return trial
-
-    def mutate(self, F, pop, bestInd, ind_pos, probas_diff):
-        mutant, formula, strat_vector = strategy.auto_strategy(F, pop, bestInd, ind_pos, probas_diff)
+    def mutate(self, F, pop, ind_pos, probas_diff):
+        mutant, formula, strat_vector = strategy.bool_strategy(F, pop, ind_pos, probas_diff)
 
         mutant = mutant.astype(bool)
 
@@ -208,7 +197,7 @@ class PbilDiff:
             probas = self.create_proba(size=self.copy.columns.size - 1)
 
             # Initialise le vecteur de probabilité pour l'évolution différentielle
-            probas_diff = self.create_proba(size=7)
+            probas_diff = self.create_proba(size=F*3*2)
 
             # Initialise la population
             pop = self.create_population(inds=n_pop, size=self.copy.columns.size - 1, probas=probas)
@@ -288,12 +277,9 @@ class PbilDiff:
                 for i in range(n_diff):
 
                     # mutation
-                    mutant, formula, strat_vector = self.mutate(F, pop, bestInd, i, probas_diff)
+                    mutant, formula, strat_vector = self.mutate(F, pop, i, probas_diff)
 
-                    # croisement
-                    trial = self.crossover(pop[i], mutant, cross_proba)
-
-                    mutants.append(trial)
+                    mutants.append(mutant)
                     formulas.append(formula)
                     strat_vectors.append(strat_vector)
 
@@ -550,7 +536,7 @@ if __name__ == '__main__':
     pop = 20
     gen = 10
     cross_proba = 0.5
-    F = 1
+    F = 2
 
     learning_rate = 0.1
     mut_proba = 0.2

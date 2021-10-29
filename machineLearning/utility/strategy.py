@@ -218,6 +218,92 @@ def auto_strategy(F, pop, bestInd, ind_pos, probas):
     return np.clip(eval(strat), 0, 1), formula, strat_vector
 
 
+def bool_strategy(F, pop, ind_pos, probas):
+    strat = "("
+    formula = "("
+    strat_vector = []
+
+    # Selection des 5 individus aléatoires de la population actuelle
+    idxs = [idx for idx in range(len(pop)) if idx != ind_pos]
+    selected = np.random.choice(idxs, 3, replace=False)
+    xr1, xr2, xr3 = pop[selected]
+
+    xr1_bar = np.invert(xr1)
+    xr2_bar = np.invert(xr2)
+    xr3_bar = np.invert(xr3)
+
+    # print(xr1)
+    # print(type(xr1))
+
+    xr1 = "np.array([" + ",".join(map(str, xr1)) + "])"
+    xr2 = "np.array([" + ",".join(map(str, xr2)) + "])"
+    xr3 = "np.array([" + ",".join(map(str, xr3)) + "])"
+
+    xr1_bar = "np.array([" + ",".join(map(str, xr1_bar)) + "])"
+    xr2_bar = "np.array([" + ",".join(map(str, xr2_bar)) + "])"
+    xr3_bar = "np.array([" + ",".join(map(str, xr3_bar)) + "])"
+
+    for i in range(F):
+        if np.random.rand() <= probas[0 + (i*6)]:
+            strat_vector.append(True)
+            if np.random.rand() <= probas[1 + (i*6)]:
+                strat = strat + xr1 + "|"
+                formula = formula + "xr1|"
+                strat_vector.append(True)
+            else:
+                strat = strat + xr1_bar + "|"
+                formula = formula + "~xr1|"
+                strat_vector.append(False)
+        else:
+            strat_vector.append(False)
+            strat_vector.append(None)
+        if np.random.rand() <= probas[2 + (i*6)]:
+            strat_vector.append(True)
+            if np.random.rand() <= probas[3 + (i*6)]:
+                strat = strat + xr2 + "|"
+                formula = formula + "xr2|"
+                strat_vector.append(True)
+            else:
+                strat = strat + xr2_bar + "|"
+                formula = formula + "~xr2|"
+                strat_vector.append(False)
+        else:
+            strat_vector.append(False)
+            strat_vector.append(None)
+        if np.random.rand() <= probas[4 + (i*6)]:
+            strat_vector.append(True)
+            if np.random.rand() <= probas[5 + (i*6)]:
+                strat = strat + xr3 + "|"
+                formula = formula + "xr3|"
+                strat_vector.append(True)
+            else:
+                strat = strat + xr3_bar + "|"
+                formula = formula + "~xr3|"
+                strat_vector.append(False)
+        else:
+            strat_vector.append(False)
+            strat_vector.append(None)
+        if strat.endswith("|"):
+            strat = strat[:-1]
+            formula = formula[:-1]
+        if strat != "(":
+            strat = strat + ")&("
+            formula = formula + ")&("
+
+    if strat.endswith("&("):
+        strat = strat[:-2]
+        formula = formula[:-2]
+    if strat.endswith("&()"):
+        strat = strat[:-3]
+        formula = formula[:-3]
+
+    if strat == "(":
+        strat = xr1 + "|" + xr2 + "|" + xr3
+        formula = "(xr1|xr2|xr3)"
+
+    return np.clip(eval(strat), 0, 1), formula, strat_vector
+
+
 if __name__ == '__main__':
     pop = [[True, False, True], [True, True, True], [True, False, False], [False, False, True], [True, True, False],
            [False, False, False], [False, True, True], [False, True, False], [True, True, True], [True, False, True]]
@@ -236,3 +322,7 @@ if __name__ == '__main__':
     # print(np.clip(eval(res1), 0, 1))
     # print(res2)
     # print(res3)
+
+    F = 2
+    v1 = bool_strategy(F, np.array(pop), 0, [0.5]*F*3*2)
+    print(v1)
