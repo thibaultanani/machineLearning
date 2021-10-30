@@ -297,9 +297,24 @@ def bool_strategy(F, pop, ind_pos, probas):
         strat = strat[:-3]
         formula = formula[:-3]
 
+    strat = strat.replace("&()&", "&")
+    formula = formula.replace("&()&", "&")
+
+    strat = strat.replace("&()", "&")
+    formula = formula.replace("&()", "&")
+
+    strat = strat.replace("&&", "&")
+    formula = formula.replace("&&", "&")
+
+    if strat.endswith("&"):
+        strat = strat[:-1]
+        formula = formula[:-1]
+
     if strat == "(":
         strat = xr1 + "|" + xr2 + "|" + xr3
         formula = "(xr1|xr2|xr3)"
+
+    # print(strat, formula)
 
     return np.clip(eval(strat), 0, 1), formula, strat_vector
 
@@ -323,6 +338,7 @@ if __name__ == '__main__':
     # print(res2)
     # print(res3)
 
-    F = 2
-    v1 = bool_strategy(F, np.array(pop), 0, [0.5]*F*3*2)
-    print(v1)
+    for i in range(1000):
+        F = 4
+        v1 = bool_strategy(F, np.array(pop), 0, [0.5]*F*3*2)
+        print(v1)
